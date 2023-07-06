@@ -12,7 +12,8 @@ int startServer()
 {
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	
-    if (serverSocket < 0) {
+    if (serverSocket < 0) 
+	{
         std::cerr << "Failed to create socket." << std::endl;
         return 1;
     }
@@ -21,7 +22,8 @@ int startServer()
     serverAddress.sin_addr.s_addr = INADDR_ANY;
     serverAddress.sin_port = htons(PORT);
 
-    if (bind(serverSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) < 0) {
+    if (bind(serverSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) < 0) 
+	{
         std::cerr << "Failed to bind socket." << std::endl;
         return 1;
     }
@@ -30,12 +32,14 @@ int startServer()
 
     std::cout << "Waiting for clients to connect..." << std::endl;
 
-    while (true) {
+    while (true) 
+	{
         sockaddr_in clientAddress{};
         socklen_t clientAddressLength = sizeof(clientAddress);
 
         int clientSocket = accept(serverSocket, reinterpret_cast<sockaddr*>(&clientAddress), &clientAddressLength);
-        if (clientSocket < 0) {
+        if (clientSocket < 0) 
+		{
             std::cerr << "Failed to accept connection." << std::endl;
             return 1;
         }
@@ -48,7 +52,8 @@ int startServer()
     }
 
     // Wait for all client threads to finish
-    for (auto& thread : clientThreads) {
+    for (auto& thread : clientThreads) 
+	{
         thread.join();
     }
 
