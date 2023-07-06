@@ -8,6 +8,7 @@
 #include <thread>
 #include <mutex>
 #include <vector>
+#include "Board.h"
 #include "defs.h"
 
 class ChessEngine
@@ -29,6 +30,8 @@ class ChessEngine
 	
     int serverSocket;
     sockaddr_in serverAddress{};
+	
+	Board game;
 }
 
 
