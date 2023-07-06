@@ -2,6 +2,4 @@
 #define PIECE
 
 
-
-
 #endif
