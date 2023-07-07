@@ -1,6 +1,7 @@
 # CChessV2
 
-Version 2 of CChess Engine. Built with a lot more experience, right from the start.
+Version 2 of CChess Engine.
+Uses websockets for greater inter-platform compatibility. The engine hosts a websocket server that is then connected to by any client.
 
 Instructions:
 - Make the program at root (it will also call the makefile in the linuxclient file).
