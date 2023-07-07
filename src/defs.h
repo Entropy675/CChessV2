@@ -5,7 +5,17 @@
 #define C_PASS			1
 #define MAX_ROW_COL		8
 
+enum class ChessStatus 
+{
+	FAIL,
+	SUCCESS,
+	PROMOTE
+};
+
 constexpr int PORT = 5000;
 constexpr int MAX_CLIENTS = 5;  // Maximum number of clients
+
+class Board;
+class Piece;
 
 #endif
