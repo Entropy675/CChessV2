@@ -21,7 +21,7 @@ class ChessEngine
 	ChessEngine();
 	~ChessEngine();
 	
-	// starts the chess engine server, socket defined in defs.h
+	// starts the chess engine server, port defined in defs.h
 	int startServer();
 	
 	
@@ -35,7 +35,7 @@ class ChessEngine
     int serverSocket;
     sockaddr_in serverAddress{};
 	
-	//Board game;
+	Board game;
 };
 
 
