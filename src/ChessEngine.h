@@ -3,12 +3,15 @@
 
 #include <iostream>
 #include <cstring>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <unistd.h>
+
 #include <thread>
 #include <mutex>
+
 #include <vector>
-#include "Board.h"
 #include "defs.h"
 
 class ChessEngine
@@ -31,8 +34,8 @@ class ChessEngine
     int serverSocket;
     sockaddr_in serverAddress{};
 	
-	Board game;
-}
+	//Board game;
+};
 
 
 

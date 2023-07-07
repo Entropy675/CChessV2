@@ -1,6 +1,16 @@
 #include "ChessEngine.h"
 
-void handleClient(int clientSocket) 
+ChessEngine::ChessEngine()
+{
+	
+}
+
+ChessEngine::~ChessEngine()
+{
+	
+}
+
+void ChessEngine::handleClient(int clientSocket) 
 {
     // Handle communication with the client here
     // Example: exchange data using 'clientSocket'
@@ -8,7 +18,7 @@ void handleClient(int clientSocket)
     close(clientSocket);
 }
 
-int startServer()
+int ChessEngine::startServer()
 {
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	
@@ -47,7 +57,10 @@ int startServer()
         std::cout << "Client connected." << std::endl;
 
         // Start a new thread to handle the client
-        std::thread thread(handleClient, clientSocket);
+        std::thread thread([this, clientSocket]() 
+		{ 
+			handleClient(clientSocket); 
+		});
         clientThreads.push_back(std::move(thread));
     }
 

@@ -3,12 +3,15 @@
 
 #include <iostream>
 #include <cstring>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+
 #include "defs.h"
 
-class LinuxClient()
+class LinuxClient
 {
 	public:
 	int startConnection();
@@ -16,6 +19,6 @@ class LinuxClient()
 	private:
     int clientSocket;
     sockaddr_in serverAddress{};
-}
+};
 
 #endif
