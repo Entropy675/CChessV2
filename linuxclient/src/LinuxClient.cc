@@ -13,7 +13,7 @@ int LinuxClient::startConnection()
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_port = htons(PORT);
 	
-    if (inet_pton(AF_INET, "127.0.0.1", &(serverAddress.sin_addr)) <= 0) 
+    if (inet_pton(AF_INET, connectIP.c_str(), &(serverAddress.sin_addr)) <= 0) 
 	{
         std::cerr << "Invalid address." << std::endl;
         return 1;

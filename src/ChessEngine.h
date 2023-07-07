@@ -12,6 +12,7 @@
 #include <mutex>
 
 #include <vector>
+#include "Board.h"
 #include "defs.h"
 
 class ChessEngine

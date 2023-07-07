@@ -17,8 +17,9 @@ class LinuxClient
 	int startConnection();
 
 	private:
-    int clientSocket;
     sockaddr_in serverAddress{};
+    int clientSocket;
+	std::string connectIP = "127.0.0.1";
 };
 
 #endif
