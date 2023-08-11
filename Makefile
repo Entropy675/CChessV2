@@ -5,9 +5,18 @@ CC = g++ -Wall -g
 
 ENGINE_SOURCES = $(PATH2OBJ)ChessEngine.o $(PATH2OBJ)Pos.o $(PATH2OBJ)Board.o $(PATH2OBJ)Piece.o $(PATH2OBJ)Bitboard.o
 
+# assuming MinGW toolchain for compiling on windows, assuming ncurses on linux
+ifeq ($(OS),Windows_NT)
+    $(error Unsupported operating system for linux server, see windowsclient folder: $(OS))
+else ifeq ($(shell uname),Linux)
+    TARGET = linuxclient
+else
+    $(error Unsupported operating system: $(OS))
+endif
+
 CChess: $(ENGINE_SOURCES) $(PATH2OBJ)main.o
 	$(CC) -o CChess $(ENGINE_SOURCES) $(PATH2OBJ)main.o
-	$(MAKE) -C linuxclient
+	$(MAKE) -C $(TARGET)
 
 $(PATH2OBJ)ChessEngine.o: $(PATH2SRC)ChessEngine.cc $(PATH2SRC)ChessEngine.h  $(PATH2SRC)defs.h
 	$(CC) -c $(PATH2SRC)ChessEngine.cc -o $(PATH2OBJ)ChessEngine.o
@@ -31,4 +40,5 @@ $(PATH2OBJ)Bitboard.o: $(PATH2SRC)Bitboard.cc $(PATH2SRC)Pos.h $(PATH2SRC)defs.h
 clean:
 		find . -type f -name '*.o' -delete
 		rm -f CChess
-		rm -f linuxclient/LinuxClient
+		rm -f linuxclient/CChessTerminal
+		rm -f windowsclient/CChessClient.exe
