@@ -51,8 +51,8 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	
 	std::cout << "X: " << SCREEN_WIDTH*0.8/MAX_ROW_COL << "Y: " << SCREEN_HEIGHT/MAX_ROW_COL << std::endl;
 	
-	sqWidth = SCREEN_WIDTH*0.8/MAX_ROW_COL;
-	sqHeight = SCREEN_HEIGHT/MAX_ROW_COL; 
+	sqWidth = SCREEN_WIDTH*0.8/MAX_ROW_COL - 1;
+	sqHeight = SCREEN_HEIGHT/MAX_ROW_COL - 2; 
 	
 	running = true;
 	return 0;
@@ -126,8 +126,8 @@ void GameClient::render()
 	{
 		for(int y = 0; y < MAX_ROW_COL; ++y)
 		{
-			SDL_SetRenderDrawColor(renderer, x*30, y*30, 255 - x*15 - y*15, 255);
-			SDL_Rect tile = {x*sqWidth, y*sqHeight, sqWidth, sqHeight};
+			SDL_SetRenderDrawColor(renderer, x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
+			SDL_Rect tile = {(int)(x*sqWidth + SCREEN_WIDTH*0.005 + 0.005), (int)(y*sqHeight + SCREEN_HEIGHT*0.01 + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
 			SDL_RenderFillRect(renderer, &tile);    // Draw the screen outline
 		}
 	}
