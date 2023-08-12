@@ -7,4 +7,6 @@
 #define MAX_ROW_COL		8
 
 
+constexpr int PORT = 5000;
+
 #endif

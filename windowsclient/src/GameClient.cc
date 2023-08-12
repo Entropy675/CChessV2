@@ -1,7 +1,6 @@
 #include "GameClient.h"
 #include <iostream>
 #include <cstdlib>
-#include <string>
 
 GameClient::GameClient()
 {
@@ -10,7 +9,14 @@ GameClient::GameClient()
 
 GameClient::~GameClient()
 {
+	// clean up SDL
 	clean();
+	
+    // Close socket
+    closesocket(clientSocket);
+
+    // Cleanup Winsock
+    WSACleanup();
 }
 
 int GameClient::init(const char* title, int xpos, int ypos, int width, int height, bool fs)
@@ -51,12 +57,46 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 		return 1;
 	}	
 	
+	// initialize winsock
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+        std::cerr << "Failed to initialize Winsock." << std::endl;
+        return 1;
+    }
+
+	
 	std::cout << "X: " << SCREEN_WIDTH*0.8/MAX_ROW_COL << "Y: " << SCREEN_HEIGHT/MAX_ROW_COL << std::endl;
 	
 	sqWidth = (int)(SCREEN_WIDTH*0.7)/MAX_ROW_COL - 1;
 	sqHeight = (int)(SCREEN_HEIGHT)/MAX_ROW_COL - 2; 
 	
 	running = true;
+	return 0;
+}
+
+int GameClient::startConnection()
+{
+    // Create socket
+    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
+    if (clientSocket == INVALID_SOCKET) {
+        std::cerr << "Failed to create socket." << std::endl;
+        WSACleanup();
+        return 1;
+    }
+
+    sockaddr_in serverAddress;
+    serverAddress.sin_family = AF_INET;
+    serverAddress.sin_port = htons(PORT);
+    serverAddress.sin_addr.s_addr = inet_addr(connectIP.c_str());
+
+    // Connect to server
+    if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) {
+        std::cerr << "Connection failed." << std::endl;
+        closesocket(clientSocket);
+        WSACleanup();
+        return 1;
+    }
+
+    std::cout << "Connected to the server." << std::endl;
 	return 0;
 }
 
@@ -104,6 +144,11 @@ void GameClient::handleEvents()
 			{
 				SDL_Log("Tilde ~ button pressed.");
 				toggleFullscreen();
+			}
+			else if(event.key.keysym.sym == SDLK_c)
+			{
+				if(startConnection())
+					SDL_Log("Could not connect to the socket server.");
 			}
 			break;
 			
