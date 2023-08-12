@@ -4,7 +4,12 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
+#include <winsock2.h> // Winsock2 header
+#pragma comment(lib, "ws2_32.lib") // Link against the Winsock library
+
 #include "defs.h"
+#include <string>
+
 
 class GameClient
 {
@@ -17,6 +22,7 @@ public:
 	int init(const char* title, int xpos = SDL_WINDOWPOS_CENTERED, int ypos = SDL_WINDOWPOS_CENTERED, int width = 800, int height = 800, bool fullscreen = false);
 	
 	void startGameLoop();
+	bool isRunning();
 	
 	void handleEvents();
 	void update();
@@ -28,9 +34,10 @@ public:
 	int getScreenY(float, bool = true);
 
 	void log(const char*);
-	bool isRunning();
-	
 	void toggleFullscreen();
+	
+	
+	int startConnection();
 	
 private:
 	int windowOffsetX = 0;
@@ -42,6 +49,10 @@ private:
 	bool running = false;
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
+	
+    WSADATA wsaData;
+    SOCKET clientSocket;
+	std::string connectIP = "127.0.0.1";
 };
 
 
