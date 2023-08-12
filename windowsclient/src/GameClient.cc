@@ -1,5 +1,7 @@
 #include "GameClient.h"
 #include <iostream>
+#include <cstdlib>
+#include <string>
 
 GameClient::GameClient()
 {
@@ -51,8 +53,8 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	
 	std::cout << "X: " << SCREEN_WIDTH*0.8/MAX_ROW_COL << "Y: " << SCREEN_HEIGHT/MAX_ROW_COL << std::endl;
 	
-	sqWidth = SCREEN_WIDTH*0.8/MAX_ROW_COL - 1;
-	sqHeight = SCREEN_HEIGHT/MAX_ROW_COL - 2; 
+	sqWidth = (int)(SCREEN_WIDTH*0.7)/MAX_ROW_COL - 1;
+	sqHeight = (int)(SCREEN_HEIGHT)/MAX_ROW_COL - 2; 
 	
 	running = true;
 	return 0;
@@ -115,6 +117,19 @@ void GameClient::update()
 	
 }
 
+int GameClient::getScreenX(float percent, bool topLeft)
+{
+	if(topLeft)
+		return (int)(SCREEN_WIDTH*percent) + windowOffsetX/2;
+	return (int)(SCREEN_WIDTH*percent) - windowOffsetX/2;
+}
+int GameClient::getScreenY(float percent, bool topLeft)
+{
+	if(topLeft)
+		return (int)(SCREEN_HEIGHT*percent) + windowOffsetY/2;
+	return (int)(SCREEN_HEIGHT*percent) - windowOffsetY/2;
+}
+
 void GameClient::render()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -122,32 +137,36 @@ void GameClient::render()
 	
 	// add stuff to render
 	
+	
 	for(int x = 0; x < MAX_ROW_COL; ++x)
 	{
 		for(int y = 0; y < MAX_ROW_COL; ++y)
 		{
 			SDL_SetRenderDrawColor(renderer, x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
-			SDL_Rect tile = {(int)(x*sqWidth + SCREEN_WIDTH*0.005 + 0.005), (int)(y*sqHeight + SCREEN_HEIGHT*0.01 + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
-			SDL_RenderFillRect(renderer, &tile);    // Draw the screen outline
+			SDL_Rect tile = {(int)(x*sqWidth + getScreenX(0.005) + 0.005), (int)(y*sqHeight + getScreenY(0.01) + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
+			SDL_RenderFillRect(renderer, &tile);    // Draw the tiles
 		}
 	}
 	
-	
-	
+	SDL_Rect rect;
 	
 	// OUTLINES
-    // Set the draw color for the rectangle (red in this case)
+    // Set the draw color for the rectangle 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_Rect rect1 = {(int)(SCREEN_WIDTH*0.805), (int)(SCREEN_HEIGHT*0.01), (int)(SCREEN_WIDTH*0.99), (int)(SCREEN_HEIGHT*0.98)};
-    SDL_RenderFillRect(renderer, &rect1);    // Draw the screen outline
+    rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.99, false), getScreenY(0.98, false)};
+    SDL_RenderFillRect(renderer, &rect);    // Draw the screen outline
 	
-    // Create a rectangle
+    // Create rectangles for chatbox
 	// (x, y, width, height)
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_Rect rect2 = {(int)(SCREEN_WIDTH*0.8), (int)(SCREEN_HEIGHT*0), (int)(SCREEN_WIDTH*0.005), (int)(SCREEN_HEIGHT)};
-    SDL_RenderFillRect(renderer, &rect2);
+    rect = {getScreenX(0.7), getScreenY(0), 20, getScreenY(1.00, false)};
+    SDL_RenderFillRect(renderer, &rect);
 	
-    
+	// (x, y, width, height)
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    rect = {getScreenX(0.99), getScreenY(0), 700, getScreenY(1.00, false)};
+    SDL_RenderFillRect(renderer, &rect);
+	
 	SDL_RenderPresent(renderer);
 }
 
@@ -169,14 +188,32 @@ void GameClient::toggleFullscreen()
 {
 	Uint32 flags = SDL_GetWindowFlags(window);
 	
-    if (flags & SDL_WINDOW_FULLSCREEN) 
+    if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) 
 	{
         SDL_Log("Window is now not in fullscreen mode.");
 		SDL_SetWindowFullscreen(window, 0);
+		windowOffsetX = 0;
+		windowOffsetY = 0;
     } 
 	else 
 	{
+		// Calculate scaling factors based on screen and image dimensions
+		// theoretically you can scale each pixel to the right position with the following code
+		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+
+        int screenWidth, screenHeight;
+        SDL_GetWindowSize(window, &screenWidth, &screenHeight);
+
+		windowOffsetX = std::abs(screenWidth - SCREEN_WIDTH)/2;
+		windowOffsetY = std::abs(screenHeight - SCREEN_HEIGHT)/2;
+		
+			
+		// Clear renderer
+        SDL_RenderClear(renderer);
+
         SDL_Log("Window is now in fullscreen mode.");
-		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+		std::string s = "X: " + std::to_string(screenWidth) + " Y: " + std::to_string(screenHeight);
+		SDL_Log(s.c_str());
+		
     }
 }

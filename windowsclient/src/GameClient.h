@@ -23,12 +23,19 @@ public:
 	void render();
 	void clean();
 	
+	// return x & y values, takes fraction of screen. Accounts for different screen sizes with offset internally.
+	int getScreenX(float, bool = true); // like 0.5 would be the X value for the halfway of the screen, for 1600 screen it returns 800.
+	int getScreenY(float, bool = true);
+
 	void log(const char*);
 	bool isRunning();
 	
 	void toggleFullscreen();
 	
 private:
+	int windowOffsetX = 0;
+	int windowOffsetY = 0;
+	
 	int sqWidth = 0;
 	int sqHeight = 0;
 	
