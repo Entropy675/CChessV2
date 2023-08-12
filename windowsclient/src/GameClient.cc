@@ -1,4 +1,5 @@
 #include "GameClient.h"
+#include <iostream>
 
 GameClient::GameClient()
 {
@@ -34,7 +35,8 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
         flags
     );
 
-    if (window == nullptr) {
+    if (window == nullptr) 
+	{
         SDL_Log("init ERROR; Window could not be created! SDL_Error: %s", SDL_GetError());
         return 1;
     }
@@ -45,9 +47,12 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	{
         SDL_Log("init ERROR; Renderer could not be created! SDL_Error: %s", SDL_GetError());
 		return 1;
-	}
+	}	
 	
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	std::cout << "X: " << SCREEN_WIDTH*0.8/MAX_ROW_COL << "Y: " << SCREEN_HEIGHT/MAX_ROW_COL << std::endl;
+	
+	sqWidth = SCREEN_WIDTH*0.8/MAX_ROW_COL;
+	sqHeight = SCREEN_HEIGHT/MAX_ROW_COL; 
 	
 	running = true;
 	return 0;
@@ -112,33 +117,37 @@ void GameClient::update()
 
 void GameClient::render()
 {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
 	SDL_RenderClear(renderer);
 	
 	// add stuff to render
 	
+	for(int x = 0; x < MAX_ROW_COL; ++x)
+	{
+		for(int y = 0; y < MAX_ROW_COL; ++y)
+		{
+			SDL_SetRenderDrawColor(renderer, x*30, y*30, 255 - x*15 - y*15, 255);
+			SDL_Rect tile = {x*sqWidth, y*sqHeight, sqWidth, sqHeight};
+			SDL_RenderFillRect(renderer, &tile);    // Draw the screen outline
+		}
+	}
 	
-    // Render text using SDL
 	
-	TTF_Font* Sans = TTF_OpenFont("Sans.ttf", 24);
-    const char* text = "Hello, SDL Default Font!";
-    SDL_Color textColor = { 255, 0, 0, 255 }; // Red color
-    
-    SDL_Surface* textSurface = TTF_RenderText_Solid(Sans, text, textColor);
-    if (textSurface)
-    {
-        SDL_Texture* textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-        if (textTexture)
-        {
-            SDL_Rect textRect = { 100, 100, textSurface->w, textSurface->h }; // Adjust position as needed
-            SDL_RenderCopy(renderer, textTexture, nullptr, &textRect);
-            SDL_DestroyTexture(textTexture);
-        }
-        
-        SDL_FreeSurface(textSurface);
-    }
-    
-    
 	
+	
+	// OUTLINES
+    // Set the draw color for the rectangle (red in this case)
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_Rect rect1 = {(int)(SCREEN_WIDTH*0.805), (int)(SCREEN_HEIGHT*0.01), (int)(SCREEN_WIDTH*0.99), (int)(SCREEN_HEIGHT*0.98)};
+    SDL_RenderFillRect(renderer, &rect1);    // Draw the screen outline
+	
+    // Create a rectangle
+	// (x, y, width, height)
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_Rect rect2 = {(int)(SCREEN_WIDTH*0.8), (int)(SCREEN_HEIGHT*0), (int)(SCREEN_WIDTH*0.005), (int)(SCREEN_HEIGHT)};
+    SDL_RenderFillRect(renderer, &rect2);
+	
+    
 	SDL_RenderPresent(renderer);
 }
 

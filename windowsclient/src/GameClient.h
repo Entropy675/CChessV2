@@ -29,6 +29,9 @@ public:
 	void toggleFullscreen();
 	
 private:
+	int sqWidth = 0;
+	int sqHeight = 0;
+	
 	bool running = false;
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
