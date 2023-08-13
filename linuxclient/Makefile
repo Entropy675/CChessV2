@@ -5,7 +5,7 @@ CC = g++ -Wall -g
 LIB = -lncursesw
 
 ENGINE_SOURCES = $(PATH2OBJ)LinuxClient.o $(PATH2OBJ)LocalBoard.o $(PATH2OBJ)Pos.o
-TARGET = CChessTerminal
+TARGET = CChess
 
 LinuxClient: $(ENGINE_SOURCES) $(PATH2OBJ)main.o
 	$(CC) -o $(TARGET) $(ENGINE_SOURCES) $(PATH2OBJ)main.o $(LIB)
@@ -25,4 +25,4 @@ $(PATH2OBJ)main.o: $(PATH2SRC)main.cc $(PATH2SRC)defs.h
 .PHONY: clean
 clean:
 		find . -type f -name '*.o' -delete
-		rm -f CChessTerminal
+		rm -f $(TARGET)

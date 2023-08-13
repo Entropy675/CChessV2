@@ -7,15 +7,17 @@ ENGINE_SOURCES = $(PATH2OBJ)ChessEngine.o $(PATH2OBJ)Pos.o $(PATH2OBJ)Board.o $(
 
 # assuming MinGW toolchain for compiling on windows, assuming ncurses on linux
 ifeq ($(OS),Windows_NT)
-    $(error Unsupported operating system for linux server, see windowsclient folder: $(OS))
+    TARGET = windowsclient
+	BINARY = CChessServer.exe
 else ifeq ($(shell uname),Linux)
     TARGET = linuxclient
+	BINARY = CChessServer
 else
     $(error Unsupported operating system: $(OS))
 endif
 
-CChess: $(ENGINE_SOURCES) $(PATH2OBJ)main.o
-	$(CC) -o CChess $(ENGINE_SOURCES) $(PATH2OBJ)main.o
+$(BINARY): $(ENGINE_SOURCES) $(PATH2OBJ)main.o
+	$(CC) -o $(BINARY) $(ENGINE_SOURCES) $(PATH2OBJ)main.o
 	$(MAKE) -C $(TARGET)
 
 $(PATH2OBJ)ChessEngine.o: $(PATH2SRC)ChessEngine.cc $(PATH2SRC)ChessEngine.h  $(PATH2SRC)defs.h
@@ -39,6 +41,7 @@ $(PATH2OBJ)Bitboard.o: $(PATH2SRC)Bitboard.cc $(PATH2SRC)Pos.h $(PATH2SRC)defs.h
 .PHONY: clean
 clean:
 		find . -type f -name '*.o' -delete
-		rm -f CChess
-		rm -f linuxclient/CChessTerminal
-		rm -f windowsclient/CChessClient.exe
+		rm -f CChessServer.exe
+		rm -f CChessServer
+		rm -f linuxclient/CChess
+		rm -f windowsclient/CChess.exe
