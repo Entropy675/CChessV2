@@ -1,21 +1,21 @@
-#include WindowsSocket.h
+#include "WindowsSocket.h"
 
 WindowsSocket::WindowsSocket() : socketEnabled(false)
 {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-		fprintf(stderr, "WSAStartup failed\n");
-		return 1;
+		std::cout << "WindowsSocket::WindowsSocket(): WSAStartup failed\n";
+		throw "WindowsSocket::WindowsSocket(): Winsock failed to initialize.";
 	}
 }
 
-WindowsSocket::~WindowsSocket() override
+WindowsSocket::~WindowsSocket()
 {
 	socketEnabled = false;
 	
 	if (acceptThread.joinable())
 		acceptThread.join();
-	{
+	
 	if (recieveThread.joinable())
 		recieveThread.join();
 	
@@ -27,12 +27,12 @@ WindowsSocket::~WindowsSocket() override
 	WSACleanup();
 }
 
-int WindowsSocket::sendData(const std::string& data) override
+int WindowsSocket::sendData(const std::string& data)
 {
 	return sendData(data, -1); // Send to all clients using other func and invalid socket
 }
 
-int WindowsSocket::sendData(const std::string& data, int cs) override
+int WindowsSocket::sendData(const std::string& data, int cs)
 {
 	SOCKET clientSocket = static_cast<SOCKET>(cs);
 
@@ -66,7 +66,7 @@ int WindowsSocket::sendData(const std::string& data, int cs) override
 	return 0;
 }
 
-void WindowsSocket::receiveData(std::string& out, int cs) override
+void WindowsSocket::receiveData(std::string& out, int cs)
 {
 	SOCKET clientSocket = static_cast<SOCKET>(cs);
 
@@ -83,7 +83,7 @@ void WindowsSocket::receiveData(std::string& out, int cs) override
     out = std::string(buffer);
 }
 
-void WindowsSocket::receiveDataToQueue() override
+void WindowsSocket::receiveDataToQueue()
 {
 	std::string output = "";
 	std::queue<std::string> tempQueue;
@@ -93,7 +93,7 @@ void WindowsSocket::receiveDataToQueue() override
 		for(auto& socket : clientSockets)
 		{
 			output = "";
-			receiveData(output, static_cast<int>(socket))
+			receiveData(output, static_cast<int>(socket));
 			if(output.compare("") != 0)
 				tempQueue.push(output); // does not store ref, copies
 		}
@@ -111,10 +111,10 @@ void WindowsSocket::receiveDataToQueue() override
 		}
 	}
 	
-	cout << "WindowsSocket::receiveDataToQueue(): Exiting... \n";
+	std::cout << "WindowsSocket::receiveDataToQueue(): Exiting... \n";
 }
 	
-void WindowsSocket::acceptConnections() override
+void WindowsSocket::acceptConnections()
 {
     while (socketEnabled) 
 	{
@@ -126,10 +126,10 @@ void WindowsSocket::acceptConnections() override
         clientSockets.push_back(clientSocket);
     }
 	
-	cout << "WindowsSocket::acceptConnections(): Exiting... \n";
+	std::cout << "WindowsSocket::acceptConnections(): Exiting... \n";
 }
 
-int WindowsSocket::startServer() override
+int WindowsSocket::startServer()
 {
 	// Create a socket
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -146,7 +146,7 @@ int WindowsSocket::startServer() override
 
 	// Bind the socket
 	if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
-		std::cout << "WindowsSocket::startServer(): Server bind failed\n");
+		std::cout << "WindowsSocket::startServer(): Server bind failed\n";
 		closesocket(serverSocket);
 		return 1;
 	}

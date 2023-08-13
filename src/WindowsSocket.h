@@ -4,12 +4,14 @@
 #include "SocketHandler.h"	
 
 // Windows
-#include <windows.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <windows.h>
 
 #include <vector>
 #include <thread>
+
+#include "defs.h"
 
 class WindowsSocket : public SocketHandler
 {
@@ -33,7 +35,7 @@ class WindowsSocket : public SocketHandler
 	std::mutex clientSocketsMutex; // use std::lock_guard<std::mutex> lock(clientSocketsMutex); object to simplify lock/unlocking (its RAII)
 	SOCKET serverSocket;
 	bool socketEnabled;
-}
+};
 
 
 

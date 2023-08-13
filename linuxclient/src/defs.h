@@ -7,6 +7,6 @@
 #define C_OK			0
 #define C_NOK			1
 
-constexpr int PORT = 50123
+#define PORT 			50123
 
 #endif

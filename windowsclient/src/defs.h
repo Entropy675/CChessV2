@@ -8,6 +8,6 @@
 #define NUM_PIECES		64
 
 
-constexpr int PORT = 50123;
+#define PORT 			50123
 
 #endif
