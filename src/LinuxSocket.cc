@@ -3,7 +3,7 @@
 
 LinuxSocket::LinuxSocket()
 {
-	
+	std::cout << "Linux socket is not yet made..." << std::endl;
 }
 
 LinuxSocket::~LinuxSocket()
