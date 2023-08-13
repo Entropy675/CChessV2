@@ -3,5 +3,7 @@
 int main()
 {
 	LinuxClient client;
-	return client.startConnection();
+	client.startGameLoop();
+	
+	return 0;
 }
