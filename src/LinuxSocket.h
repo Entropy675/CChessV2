@@ -2,6 +2,7 @@
 #define LINUXSOCKET_H
 
 #include "SocketHandler.h"
+#include <thread>
 
 // LINUX
 #include <sys/socket.h>
