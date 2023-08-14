@@ -10,10 +10,8 @@
 #include "defs.h"
 #include <string>
 
-
 class GameClient
 {
-
 public:	
 	GameClient();
 	~GameClient();
