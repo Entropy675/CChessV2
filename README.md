@@ -10,11 +10,11 @@ This version of the CChess Engine uses sockets for greater inter-platform compat
 
 ### Windows:
 - The executable requires the SDL2 graphics library, but all dlls/headers are included. No installation is required.
-- Requires the Mingw64 toolchain.
+- Requires a windows configured Mingw64 toolchain.
 - Run `make` in the root directory.
 
 ### Linux:
-- Requires the Ncurses graphics library, terminal only application.
+- Requires the Ncurses graphics library, is terminal only application.
 - Install Ncurses using your package manager.
 - Ensure that your terminal font is monospace.
 - Run `make` in the root directory.
