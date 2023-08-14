@@ -1,14 +1,16 @@
 #ifndef LINUXSOCKET_H
 #define LINUXSOCKET_H
 
-#include "SocketHandler.h"
 #include <thread>
+#include <iostream>
 
 // LINUX
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
 	
+#include "SocketHandler.h"
+
 class LinuxSocket : public SocketHandler
 {
 	public:
