@@ -3,9 +3,9 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 
 #include <winsock2.h> // Winsock2 header
-#pragma comment(lib, "ws2_32.lib") // Link against the Winsock library
 
 #include "defs.h"
 #include <string>
@@ -22,6 +22,9 @@ public:
 	void startGameLoop();
 	bool isRunning();
 	
+	void log(const char*);
+	
+private:
 	void handleEvents();
 	void update();
 	void render();
@@ -31,13 +34,11 @@ public:
 	int getScreenX(float, bool = true); // like 0.5 would be the X value for the halfway of the screen, for 1600 screen it returns 800.
 	int getScreenY(float, bool = true);
 
-	void log(const char*);
 	void toggleFullscreen();
 	
-	
 	int startConnection();
+	void sendData(const char*);
 	
-private:
 	int windowOffsetX = 0;
 	int windowOffsetY = 0;
 	

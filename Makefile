@@ -4,19 +4,21 @@ PATH2OBJ = obj/
 # assuming MinGW toolchain for compiling on windows, assuming ncurses on linux
 ifeq ($(OS),Windows_NT)
     TARGET = windowsclient
-	BINARY = CChessServer.exe
+	BINLOCATION = bin/Windows/
+	ENDTAG = .exe
 	SOCKET = WindowsSocket
 	LIB = -L. -lmingw32 -lws2_32
 	CC = g++
 else ifeq ($(shell uname),Linux)
     TARGET = linuxclient
-	BINARY = CChessServer
+	BINLOCATION = bin/Linux/
 	SOCKET = LinuxSocket
 	CC = g++ -Wall -g
 else
     $(error Unsupported operating system: $(OS))
 endif
 
+BINARY = $(BINLOCATION)CChessServer$(ENDTAG)
 
 ENGINE_SOURCES = $(PATH2OBJ)main.o $(PATH2OBJ)ChessEngine.o $(PATH2OBJ)Pos.o $(PATH2OBJ)Board.o $(PATH2OBJ)Piece.o $(PATH2OBJ)Bitboard.o $(PATH2OBJ)$(SOCKET).o $(PATH2OBJ)SocketHandler.o
 
@@ -51,7 +53,9 @@ $(PATH2OBJ)main.o: $(PATH2SRC)main.cc $(PATH2SRC)defs.h
 .PHONY: clean
 clean:
 		find . -type f -name '*.o' -delete
-		rm -f CChessServer.exe
-		rm -f CChessServer
-		rm -f linuxclient/CChess
-		rm -f windowsclient/CChess.exe
+		rm -f $(BINARY)
+		rm -f $(BINLOCATION)CChess$(ENDTAG)
+	
+.PHONY: cleanobjects
+cleanobjects:
+		find . -type f -name '*.o' -delete

@@ -8,7 +8,7 @@
 #include <vector>
 
 /* MoveBehaviour
-** Pure virtual class, children are primitive and modular behaviours.
+** Stratagy interface = modular behaviours.
 ** These behaviours can be added to Pieces (in their movebehavArr),
 ** where they are used to compute the valid moves of that piece.
 ** Ex: Queen has the combination of the X (Cross) and + (Plus) behaviours,
@@ -26,7 +26,7 @@ public:
 	virtual bool isValidMove(const Pos& to);
 	
 	virtual Bitboard validMoves(Pos* p = nullptr) const = 0;
-	virtual void validMoves(std::vector<Pos>& out) = 0; // ptr cant be const ref because of pawn EP set & kill
+	virtual void validMoves(std::vector<Pos>& out) = 0;
 
 protected:
 	Piece* from;

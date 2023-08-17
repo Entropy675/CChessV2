@@ -5,7 +5,7 @@ CC = g++ -Wall -g
 LIB = -lncursesw
 
 ENGINE_SOURCES = $(PATH2OBJ)LinuxClient.o $(PATH2OBJ)LocalBoard.o $(PATH2OBJ)Pos.o
-TARGET = CChess
+TARGET = ../bin/Linux/CChess
 
 LinuxClient: $(ENGINE_SOURCES) $(PATH2OBJ)main.o
 	$(CC) -o $(TARGET) $(ENGINE_SOURCES) $(PATH2OBJ)main.o $(LIB)

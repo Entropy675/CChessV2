@@ -8,6 +8,8 @@
     #error "ChessEngine.cc: Unsupported platform - compilation stopped."
 #endif
 
+#include <queue>
+
 ChessEngine::ChessEngine()
 {
 	#ifdef _WIN32
@@ -29,5 +31,17 @@ ChessEngine::~ChessEngine()
 
 int ChessEngine::startServer()
 {
-    return SocketCtrl->startServer();
+    int status = SocketCtrl->startServer();
+	std::lock_guard<std::mutex> lock(SocketCtrl->queueMutex);
+	std::queue<std::string>& cmdQueue = SocketCtrl->accessCommandQueue(lock);
+
+	while(true)
+	{
+		// CORE LOOP
+		if(!cmdQueue.empty())
+		{
+			std::cout << cmdQueue.front() << std::endl;
+			cmdQueue.pop();
+		}
+	}
 }

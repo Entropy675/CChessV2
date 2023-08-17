@@ -23,7 +23,7 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	// Initialize SDL
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) 
 	{
-        SDL_Log("init ERROR; SDL could not initialize! SDL_Error: %s", SDL_GetError());
+        SDL_Log("GameClient::init(): SDL could not initialize! SDL_Error: %s", SDL_GetError());
         return 1;
     }
 	
@@ -76,7 +76,7 @@ int GameClient::startConnection()
     // Create socket
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket == INVALID_SOCKET) {
-        std::cout << "Failed to create socket." << std::endl;
+        std::cout << "FGameClient::startConnection(): Failed to create socket." << std::endl;
         WSACleanup();
         return 1;
     }
@@ -88,13 +88,13 @@ int GameClient::startConnection()
 
     // Connect to server
     if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) {
-        std::cout << "Connection failed." << std::endl;
+        std::cout << "GameClient::startConnection(): Connection failed." << std::endl;
         closesocket(clientSocket);
         WSACleanup();
         return 1;
     }
 
-    std::cout << "Connected to the server." << std::endl;
+    std::cout << "GameClient::startConnection(): Connected to the server." << std::endl;
 	return 0;
 }
 
@@ -148,6 +148,11 @@ void GameClient::handleEvents()
 				if(startConnection())
 					SDL_Log("GameClient::handleEvents(): Could not connect to the socket server.");
 			}
+			else if(event.key.keysym.sym == SDLK_t)
+			{
+				SDL_Log("GameClient::handleEvents(): Attempting to send test packet.");
+				sendData("TEST PACKET");
+			}
 			break;
 			
 		default:
@@ -157,20 +162,20 @@ void GameClient::handleEvents()
 
 void GameClient::update()
 {
-	
+	return;
 }
 
 int GameClient::getScreenX(float percent, bool topLeft)
 {
 	if(topLeft)
-		return (int)(SCREEN_WIDTH*percent) + windowOffsetX/2;
-	return (int)(SCREEN_WIDTH*percent) - windowOffsetX/2;
+		return (int)(SCREEN_WIDTH*percent) + windowOffsetX;
+	return (int)(SCREEN_WIDTH*percent) - windowOffsetX;
 }
 int GameClient::getScreenY(float percent, bool topLeft)
 {
 	if(topLeft)
-		return (int)(SCREEN_HEIGHT*percent) + windowOffsetY/2;
-	return (int)(SCREEN_HEIGHT*percent) - windowOffsetY/2;
+		return (int)(SCREEN_HEIGHT*percent) + windowOffsetY;
+	return (int)(SCREEN_HEIGHT*percent) - windowOffsetY;
 }
 
 void GameClient::render()
@@ -200,19 +205,10 @@ void GameClient::render()
 	
 	// OUTLINES
     // Set the draw color for the rectangle - Draw the screen outline
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.99, false), getScreenY(0.98, false)};
-    SDL_RenderFillRect(renderer, &rect);  
-	
     // Create rectangles for chatbox
 	// (x, y, width, height)
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    rect = {getScreenX(0.7), getScreenY(0), 20, getScreenY(1.00, false)};
-    SDL_RenderFillRect(renderer, &rect);
-	
-	// (x, y, width, height) cover right side
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    rect = {getScreenX(0.99), getScreenY(0), 700, getScreenY(1.00, false)};
+    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.29), getScreenY(0.98, false)};
     SDL_RenderFillRect(renderer, &rect);
 	
 	SDL_RenderPresent(renderer);
@@ -231,6 +227,14 @@ bool GameClient::isRunning()
 	return running;
 }
 
+void GameClient::sendData(const char* message)
+{
+    if (send(clientSocket, message, strlen(message), 0) == SOCKET_ERROR) 
+	{
+        std::cout << "GameClient::sendData(): Failed to send data. Error code: " << WSAGetLastError() << std::endl;
+        // fail code goes here
+    }
+}
 
 void GameClient::toggleFullscreen()
 {
@@ -240,6 +244,7 @@ void GameClient::toggleFullscreen()
     if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) 
 	{
 		SDL_SetWindowFullscreen(window, 0);
+		render();		// render changes to display
 		windowOffsetX = 0;
 		windowOffsetY = 0;
 		
@@ -250,9 +255,10 @@ void GameClient::toggleFullscreen()
 		// Calculate scaling factors based on screen and image dimensions
 		// theoretically you can scale each pixel to the right position with the following code
 		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+		render();		// render changes to display
 		SDL_GetWindowSize(window, &screenWidth, &screenHeight);
-		windowOffsetX = std::abs(screenWidth - SCREEN_WIDTH)/2;
-		windowOffsetY = std::abs(screenHeight - SCREEN_HEIGHT)/2;
+		windowOffsetX = (int)(std::abs(screenWidth - SCREEN_WIDTH)*0.35);
+		windowOffsetY = (int)(std::abs(screenHeight - SCREEN_HEIGHT)*0.35);
 
         SDL_Log("GameClient::toggleFullscreen(): Window is now in fullscreen mode.");
     }
