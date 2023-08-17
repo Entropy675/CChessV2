@@ -200,19 +200,10 @@ void GameClient::render()
 	
 	// OUTLINES
     // Set the draw color for the rectangle - Draw the screen outline
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.99, false), getScreenY(0.98, false)};
-    SDL_RenderFillRect(renderer, &rect);  
-	
     // Create rectangles for chatbox
 	// (x, y, width, height)
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    rect = {getScreenX(0.7), getScreenY(0), 20, getScreenY(1.00, false)};
-    SDL_RenderFillRect(renderer, &rect);
-	
-	// (x, y, width, height) cover right side
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    rect = {getScreenX(0.99), getScreenY(0), 700, getScreenY(1.00, false)};
+    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
+    rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.29), getScreenY(0.98, false)};
     SDL_RenderFillRect(renderer, &rect);
 	
 	SDL_RenderPresent(renderer);
@@ -251,8 +242,8 @@ void GameClient::toggleFullscreen()
 		// theoretically you can scale each pixel to the right position with the following code
 		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 		SDL_GetWindowSize(window, &screenWidth, &screenHeight);
-		windowOffsetX = std::abs(screenWidth - SCREEN_WIDTH)/2;
-		windowOffsetY = std::abs(screenHeight - SCREEN_HEIGHT)/2;
+		windowOffsetX = (int)(std::abs(screenWidth - SCREEN_WIDTH)*0.7);
+		windowOffsetY = (int)(std::abs(screenHeight - SCREEN_HEIGHT)*0.7);
 
         SDL_Log("GameClient::toggleFullscreen(): Window is now in fullscreen mode.");
     }
