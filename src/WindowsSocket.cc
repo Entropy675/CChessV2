@@ -88,6 +88,8 @@ void WindowsSocket::receiveDataToQueue()
 	std::string output = "";
 	std::queue<std::string> tempQueue;
 	
+	std::cout << "WindowsSocket::receiveDataToQueue(): Entering... \n";
+	
 	while(socketEnabled)
 	{
 		for(auto& socket : clientSockets)
@@ -116,6 +118,8 @@ void WindowsSocket::receiveDataToQueue()
 	
 void WindowsSocket::acceptConnections()
 {
+	std::cout << "WindowsSocket::acceptConnections(): Entering... \n";
+	
     while (socketEnabled) 
 	{
         SOCKET clientSocket = accept(serverSocket, NULL, NULL);
@@ -123,6 +127,7 @@ void WindowsSocket::acceptConnections()
             continue;
 
         // Add the client socket to the vector
+		std::cout << "WindowsSocket::acceptConnections(): CLIENT CONNECTED: " <<  static_cast<int>(clientSocket) << std::endl;
         clientSockets.push_back(clientSocket);
     }
 	
