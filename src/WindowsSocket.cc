@@ -94,19 +94,23 @@ void WindowsSocket::receiveDataToQueue()
 	{
 		for(auto& socket : clientSockets)
 		{
-			output = "";
+			output = "/0";
 			receiveData(output, static_cast<int>(socket));
-			if(output.compare("") != 0)
+			if(output.compare("/0") != 0)
+			{
+				std::cout << "Recieved Data (" << socket << "): " << output << std::endl;
 				tempQueue.push(output); // does not store ref, copies
+			}
 		}
 		
 		if(!tempQueue.empty())
 		{
-			std::lock_guard<std::mutex> lock(SocketHandler::queueMutex);
+			std::lock_guard<std::mutex> lock(queueMutex);
 			std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if lock has a lock, gives me cmdQueue
 			
 			while(!tempQueue.empty())
 			{
+				std::cout << "Push " << tempQueue.front() << std::endl;
 				cmdQueue.push(tempQueue.front());
 				tempQueue.pop();
 			}

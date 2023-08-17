@@ -42,6 +42,8 @@ private:
 	int windowOffsetX = 0;
 	int windowOffsetY = 0;
 	
+	int tempCounter = 0;
+	
 	int sqWidth = 0;
 	int sqHeight = 0;
 	

@@ -76,7 +76,7 @@ int GameClient::startConnection()
     // Create socket
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket == INVALID_SOCKET) {
-        std::cout << "FGameClient::startConnection(): Failed to create socket." << std::endl;
+        std::cout << "GameClient::startConnection(): Failed to create socket." << std::endl;
         WSACleanup();
         return 1;
     }
@@ -151,11 +151,12 @@ void GameClient::handleEvents()
 			else if(event.key.keysym.sym == SDLK_t)
 			{
 				SDL_Log("GameClient::handleEvents(): Attempting to send test packet.");
-				sendData("TEST PACKET");
+				std::string testing = "TEST PACKET " + std::to_string(tempCounter++);
+				sendData(testing.c_str());
 			}
 			break;
 			
-		default:
+		default:	
 			break;
 	}
 }
@@ -229,6 +230,7 @@ bool GameClient::isRunning()
 
 void GameClient::sendData(const char* message)
 {
+	std::cout << "GameClient::sendData(): Sending: " << message << std::endl;
     if (send(clientSocket, message, strlen(message), 0) == SOCKET_ERROR) 
 	{
         std::cout << "GameClient::sendData(): Failed to send data. Error code: " << WSAGetLastError() << std::endl;
