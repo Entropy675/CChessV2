@@ -3,9 +3,9 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 
 #include <winsock2.h> // Winsock2 header
-#pragma comment(lib, "ws2_32.lib") // Link against the Winsock library
 
 #include "defs.h"
 #include <string>

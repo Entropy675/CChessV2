@@ -3,9 +3,9 @@ src = src/
 
 OBJS = $(obj)GameClient.o $(obj)main.o
 
-TARGET = CChess.exe
+TARGET = ../bin/Windows/CChess.exe
 COMPILERFLAG = -Wl,-subsystem,windows -ISDL_include/
-LIB = -L. -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image -lws2_32 -luser32 -static-libstdc++ -static-libgcc 
+LIB = -L. -lmingw32 -lSDL2main -lSDL2 -lws2_32 -luser32 -static-libstdc++ -static-libgcc 
 CC = g++
 
 
