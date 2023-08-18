@@ -12,14 +12,15 @@
     #error "ChessEngine.h: Unsupported platform - compilation stopped."
 #endif
 
-
 #include <thread>
+#include <chrono>
 #include <mutex>
 #include <vector>
 
 #include "SocketHandler.h"
 #include "Board.h"
 #include "defs.h"
+
 
 class ChessEngine
 {
