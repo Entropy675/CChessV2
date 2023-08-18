@@ -5,7 +5,9 @@
 #define C_PASS			1
 #define MAX_ROW_COL		8
 #define PORT 			50123
+
 #define ENGINE_DELAY_MS	10
+#define SOCKET_TIMEOUT	1000
 
 enum class ChessStatus 
 {

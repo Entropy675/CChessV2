@@ -9,13 +9,14 @@ GameClient::GameClient()
 
 GameClient::~GameClient()
 {
-	// clean up SDL
-	clean();
 	
     closesocket(clientSocket);
 
     // Cleanup Winsock
     WSACleanup();
+	
+	// clean up SDL
+	clean();
 }
 
 int GameClient::init(const char* title, int xpos, int ypos, int width, int height, bool fs)
@@ -73,6 +74,11 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 
 int GameClient::startConnection()
 {
+	if(!static_cast<bool>(clientSocket))
+	{
+		closesocket(clientSocket);
+		return 1;
+	}
     // Create socket
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket == INVALID_SOCKET) {
