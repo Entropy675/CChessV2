@@ -2,16 +2,17 @@
 #define WINDOWSSOCKET_H
 
 #include "SocketHandler.h"	
+#include "defs.h"
 
 // Windows
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
 
-#include <vector>
+#include <chrono>
 #include <thread>
+#include <set>
 
-#include "defs.h"
 
 class WindowsSocket : public SocketHandler
 {
@@ -27,6 +28,9 @@ class WindowsSocket : public SocketHandler
 	virtual void acceptConnections() override; // should be put on a diff thread
 	virtual void receiveDataToQueue() override;
 	virtual void receiveData(std::string& out, int cs) override;
+
+	void closeDisconnectedSockets(int soc);
+
     std::thread acceptThread;
     std::thread recieveThread;
 	
