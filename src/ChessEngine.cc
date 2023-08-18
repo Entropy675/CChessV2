@@ -17,7 +17,7 @@ ChessEngine::ChessEngine()
 	#elif defined(__linux__)
 		SocketCtrl = new LinuxSocket();
 	#else
-		#error "ChessEngine.cc: Unsupported platform - compilation stopped."
+		#error "ChessEngine::ChessEngine(): Unsupported platform - compilation stopped."
 	#endif
 	
 }
@@ -32,16 +32,23 @@ ChessEngine::~ChessEngine()
 int ChessEngine::startServer()
 {
     int status = SocketCtrl->startServer();
-	std::lock_guard<std::mutex> lock(SocketCtrl->queueMutex);
-	std::queue<std::string>& cmdQueue = SocketCtrl->accessCommandQueue(lock);
-
+	std::cout << "ChessEngine::startServer(): Going into response queue... MS:" << ENGINE_DELAY_MS << std::endl;
 	while(true)
 	{
-		// CORE LOOP
-		if(!cmdQueue.empty())
 		{
-			std::cout << cmdQueue.front() << std::endl;
-			cmdQueue.pop();
+			std::lock_guard<std::mutex> lock(SocketCtrl->queueMutex);
+			std::queue<std::string>& cmdQueue = SocketCtrl->accessCommandQueue(lock);
+			// CORE LOOP
+			if(!cmdQueue.empty())
+			{
+				std::cout << cmdQueue.front() << std::endl;
+				cmdQueue.pop();
+			}
+			else
+			{
+				std::cout << "Empty... " << std::endl;
+			}
 		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(ENGINE_DELAY_MS));
 	}
 }
