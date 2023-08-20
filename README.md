@@ -8,6 +8,9 @@ This version of the CChess Engine uses sockets for greater inter-platform compat
 
 ## Installation
 
+# TIP
+Rather then making your own binary, there are pre-included binaries for linux and windows inside of the /bin folder. If you are not interested in contributing code and only want to run the program, everything you need is in the bin/ folder.
+
 ### Windows:
 - The executable requires the SDL2 graphics library, but all dlls/headers are included. No installation is required.
 - Requires a windows configured Mingw64 toolchain.
