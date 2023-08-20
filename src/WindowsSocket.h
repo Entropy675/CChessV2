@@ -11,7 +11,7 @@
 
 #include <chrono>
 #include <thread>
-#include <set>
+#include <vector>
 
 
 class WindowsSocket : public SocketHandler
@@ -26,19 +26,19 @@ class WindowsSocket : public SocketHandler
 
 	private:
 	virtual void acceptConnections() override; // should be put on a diff thread
-	virtual void receiveDataToQueue() override;
+	virtual void receiveDataToQueue(int socket) override;
 	virtual void receiveData(std::string& out, int cs) override;
 
-	void closeDisconnectedSockets(int soc);
+	bool closeDisconnectedSockets(int soc);
 
     std::thread acceptThread;
-    std::thread recieveThread;
 	
 	WSADATA wsaData;
+	std::vector<std::thread> recieveThreads;
 	std::vector<SOCKET> clientSockets;
 	std::mutex clientSocketsMutex; // use std::lock_guard<std::mutex> lock(clientSocketsMutex); object to simplify lock/unlocking (its RAII)
 	SOCKET serverSocket;
-	bool socketEnabled;
+	bool serverSocketEnabled;
 };
 
 

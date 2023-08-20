@@ -64,3 +64,4 @@ clean:
 .PHONY: cleanobjects
 cleanobjects:
 		find . -type f -name '*.o' -delete
+		rm -f icon/icon.res

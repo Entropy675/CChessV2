@@ -1,7 +1,7 @@
 #include "WindowsSocket.h"
 #include <algorithm>
 
-WindowsSocket::WindowsSocket() : socketEnabled(false)
+WindowsSocket::WindowsSocket() : serverSocketEnabled(false)
 {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -12,13 +12,16 @@ WindowsSocket::WindowsSocket() : socketEnabled(false)
 
 WindowsSocket::~WindowsSocket()
 {
-	socketEnabled = false;
+	serverSocketEnabled = false;
 	
 	if (acceptThread.joinable())
 		acceptThread.join();
 	
-	if (recieveThread.joinable())
-		recieveThread.join();
+	for(std::thread& t : recieveThreads)
+	{		
+		if (t.joinable())
+			t.join();
+	}
 	
 	{
 		std::lock_guard<std::mutex> lock(clientSocketsMutex);
@@ -55,7 +58,7 @@ int WindowsSocket::sendData(const std::string& data, int cs)
 	} 
 	
 	std::lock_guard<std::mutex> lock(clientSocketsMutex);
-	for (SOCKET sock : clientSockets) 
+	for (SOCKET& sock : clientSockets) 
 	{
 		int bytesSent = send(sock, data.c_str(), data.size(), 0);
 		if (bytesSent == SOCKET_ERROR) 
@@ -85,62 +88,44 @@ void WindowsSocket::receiveData(std::string& out, int cs)
 
     // Null-terminate the received data
     buffer[bytesReceived] = '\0';
-    buffer[bytesReceived + 1] = '1';
 
     out = std::string(buffer);
 }
 
-void WindowsSocket::receiveDataToQueue()
+void WindowsSocket::receiveDataToQueue(int socketint)
 {
 	std::string output = "";
-	
 	std::cout << "WindowsSocket::receiveDataToQueue(): Entering... \n";
 	
-	while(socketEnabled)
+	while(serverSocketEnabled)
 	{
+		
+		receiveData(output, socketint);
+		
+		if(output.empty())
 		{
-			std::lock_guard<std::mutex> lock(clientSocketsMutex);
-			for(SOCKET socket : clientSockets)
+			if(closeDisconnectedSockets(socketint))
 			{
-				int socketint = static_cast<int>(socket);
-				receiveData(output, socketint);
-				if(output.compare("") == 0)
-				{
-					closeDisconnectedSockets(socketint);
-				}
-				else
-				{
-					std::cout << "Recieved Data (" << socket << "): " << output << std::endl;
-					
-					std::lock_guard<std::mutex> lock(queueMutex);
-					std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if lock has a lock, gives me cmdQueue
-					std::cout << "Push " << output << std::endl;
-					cmdQueue.push(output);
-				}
-				
-				std::cout << "SOC " << socketint << std::endl;
+				return;
 			}
 		}
-		
-		/*
-		if(!tempQueue.empty())
+		else
 		{
+			std::cout << "WindowsSocket::receiveDataToQueue(): Recieved Data (" << socket << "): " << output << std::endl;
+			
 			std::lock_guard<std::mutex> lock(queueMutex);
-			std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if lock has a lock, gives me cmdQueue
-		
-			std::cout << "Push " << tempQueue.front() << std::endl;
-			cmdQueue.push(tempQueue.front());
-			tempQueue.pop();
+			std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if i got a lock, gives me cmdQueue
+			std::cout << "WindowsSocket::receiveDataToQueue(): SOC " << socketint << ", cmdQueue.push(): " << output << std::endl;
+			cmdQueue.push(output);
 		}
-		*/
-		
 	}
 	
 	std::cout << "WindowsSocket::receiveDataToQueue(): Exiting... \n";
 }
 	
-void WindowsSocket::closeDisconnectedSockets(int soc)
+bool WindowsSocket::closeDisconnectedSockets(int soc)
 {
+	std::lock_guard<std::mutex> lock(timeoutMutex);
 	int tm = ++timeoutMap[soc];
 	if(tm % 10 == 0)
 		std::cout << "WindowsSocket::closeDisconnectedSockets(): TIME OUT SOC (" << soc << "): " << tm << std::endl;
@@ -152,14 +137,17 @@ void WindowsSocket::closeDisconnectedSockets(int soc)
 		std::vector<SOCKET>::iterator it = std::find(clientSockets.begin(), clientSockets.end(), tSoc);
 		if (it != clientSockets.end())
 			clientSockets.erase(it);
+		return true;
 	}
+	
+	return false;
 }
 
 void WindowsSocket::acceptConnections()
 {
 	std::cout << "WindowsSocket::acceptConnections(): Entering... \n";
 	
-    while (socketEnabled) 
+    while (serverSocketEnabled) 
 	{
         SOCKET clientSocket = accept(serverSocket, NULL, NULL);
         if (clientSocket == INVALID_SOCKET)
@@ -170,6 +158,7 @@ void WindowsSocket::acceptConnections()
         
 		std::lock_guard<std::mutex> lock(clientSocketsMutex);
 		clientSockets.push_back(clientSocket);
+		recieveThreads.push_back(std::thread(&WindowsSocket::receiveDataToQueue, this, static_cast<int>(clientSocket)));
     }
 	
 	std::cout << "WindowsSocket::acceptConnections(): Exiting... \n";
@@ -205,10 +194,9 @@ int WindowsSocket::startServer()
     }
 	
 	// Activate threads, passed all fail cases.
-	socketEnabled = true;
+	serverSocketEnabled = true;
 	
 	acceptThread = std::thread(&WindowsSocket::acceptConnections, this);
-	recieveThread = std::thread(&WindowsSocket::receiveDataToQueue, this);
 	
 	return 0;
 }

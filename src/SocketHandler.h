@@ -22,9 +22,10 @@ public:
 
 protected:
     virtual void acceptConnections() = 0;  // Should be put on a different thread, run automatically by startServer and joined appropriately in dtor.
-    virtual void receiveDataToQueue() = 0; // Should be on a different thread, automatically queues commands received via receiveData() onto the commandQueue.
+    virtual void receiveDataToQueue(int socket) = 0; // Should be on a different thread, automatically queues commands received via receiveData() onto the commandQueue.
     virtual void receiveData(std::string& out, int cs) = 0;
-
+	
+	std::mutex timeoutMutex; // Use std::lock_guard<std::mutex> lock(timeoutMutex); 
 	std::unordered_map<int, int> timeoutMap;
 private:
     std::queue<std::string> cmdQueue; // you only get this if you go through the accessComandQueue()

@@ -6,7 +6,18 @@ Version 2 of CChess Engine.
 
 This version of the CChess Engine uses sockets for greater inter-platform compatibility. The engine hosts a socket server that can be connected to by any client. The server is cross-platform and uses a strategy pattern to select and load OS-specific socket code. There are separate client programs for both Windows and Linux.
 
-## Installation
+## Running the binaries
+Everything you need to run the chess engine is in the bin/ folder specific to your operating system.
+Run the server first then run the client.
+
+### Windows:
+Use the C key on the windows client to connect to the server.
+Use T key to send a test packet and check on the server. Pressing C again will disconnect you (and again will reconnect...).
+
+### Linux:
+(coming soon...)
+
+## Compilation
 
 # TIP
 Rather then making your own binary, there are pre-included binaries for linux and windows inside of the /bin folder. If you are not interested in contributing code and only want to run the program, everything you need is in the bin/ folder.
