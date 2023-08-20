@@ -23,7 +23,7 @@ class LinuxSocket : public SocketHandler
 	
 	private:
 	virtual void acceptConnections() override; 
-	virtual void receiveDataToQueue() override;
+	virtual void receiveDataToQueue(int socket) override;
 	virtual void receiveData(std::string& out, int cs) override;
     std::thread acceptThread;
     std::thread recieveThread;

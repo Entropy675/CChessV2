@@ -77,6 +77,7 @@ int GameClient::startConnection()
 	if(!disconnected)
 	{
 		closesocket(clientSocket);
+		disconnected = true;
 		return 1;
 	}
     // Create socket
