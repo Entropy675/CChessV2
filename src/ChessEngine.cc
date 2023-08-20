@@ -33,6 +33,7 @@ int ChessEngine::startServer()
 {
     int status = SocketCtrl->startServer();
 	std::cout << "ChessEngine::startServer(): Going into response queue... MS:" << ENGINE_DELAY_MS << std::endl;
+	int pingCounter = 0;
 	while(true)
 	{
 		{
@@ -44,9 +45,10 @@ int ChessEngine::startServer()
 				std::cout << cmdQueue.front() << std::endl;
 				cmdQueue.pop();
 			}
-			else
+			else if(pingCounter++ > 20)
 			{
-				std::cout << "Empty... " << std::endl;
+				pingCounter = 0;
+				std::cout << "Ping... " << std::endl;
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(ENGINE_DELAY_MS));

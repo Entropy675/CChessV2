@@ -7,8 +7,9 @@ ifeq ($(OS),Windows_NT)
 	BINLOCATION = bin/Windows/
 	ENDTAG = .exe
 	SOCKET = WindowsSocket
-	LIB = -L. -lmingw32 -lws2_32
+	LIB = -L. -lmingw32 -lws2_32 
 	CC = g++
+	ICON_WINRESOURCE = icon/icon.res
 else ifeq ($(shell uname),Linux)
     TARGET = linuxclient
 	BINLOCATION = bin/Linux/
@@ -22,9 +23,12 @@ BINARY = $(BINLOCATION)CChessServer$(ENDTAG)
 
 ENGINE_SOURCES = $(PATH2OBJ)main.o $(PATH2OBJ)ChessEngine.o $(PATH2OBJ)Pos.o $(PATH2OBJ)Board.o $(PATH2OBJ)Piece.o $(PATH2OBJ)Bitboard.o $(PATH2OBJ)$(SOCKET).o $(PATH2OBJ)SocketHandler.o
 
-$(BINARY): $(ENGINE_SOURCES)
-	$(CC) $(ENGINE_SOURCES) $(LIB) -o $(BINARY)
+$(BINARY): $(ENGINE_SOURCES) $(ICON_WINRESOURCE)
+	$(CC) $(ENGINE_SOURCES) $(ICON_WINRESOURCE) $(LIB) -o $(BINARY)
 	$(MAKE) -C $(TARGET)
+
+$(ICON_WINRESOURCE): icon/icon.rc
+	windres $< -O coff -o $@
 
 $(PATH2OBJ)ChessEngine.o: $(PATH2SRC)ChessEngine.cc $(PATH2SRC)ChessEngine.h $(PATH2SRC)SocketHandler.h $(PATH2SRC)$(SOCKET).h $(PATH2SRC)defs.h
 	$(CC) -c $(PATH2SRC)ChessEngine.cc -o $(PATH2OBJ)ChessEngine.o
@@ -53,6 +57,7 @@ $(PATH2OBJ)main.o: $(PATH2SRC)main.cc $(PATH2SRC)defs.h
 .PHONY: clean
 clean:
 		find . -type f -name '*.o' -delete
+		rm -f icon/icon.res
 		rm -f $(BINARY)
 		rm -f $(BINLOCATION)CChess$(ENDTAG)
 	
