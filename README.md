@@ -35,13 +35,14 @@ Rather then making your own binary, there are pre-included binaries for linux an
 
 ## Build and Execution
 
-When you execute any of the Makefiles in the root of the project, depending on your operating system, either the `/linuxclient` or `/windowsclient` folders will be built. Your client executable will be found in the subfolder for your operating system. The executable generated at the root of the project is the server.
+When you execute any of the Makefiles in the root of the project, depending on your operating system, either the `/linuxclient` or `/windowsclient` folders will be built. Your client & server executables will be found in the subfolder for your operating system.
 
 To use the chess engine:
 
-1. Build the program at the root (it will also call the Makefile in the corresponding OS client folder).
-2. Run the chess engine server (`CChess`) generated at the root.
+2. Run the chess engine server (`CChessServer`) generated at your bin/OS folder.
 3. Connect to the chess engine with a client (in either `/linuxclient` or `/windowsclient`).
+4. ... (nothing else works right now, send a test packet?) ...
+5. profit?
 
 By default, the port used for communication is 50123, as set in the `defs.h` file in the `/src` folder of any executable. The port is determined at compile time and can be set in the `defs.h` before building if you want a unique one for your server/clients (which can be a bit annoying **WIP**).
 ** the default IP is currently automatically set to local host, will soon be allowing you to change that... **
