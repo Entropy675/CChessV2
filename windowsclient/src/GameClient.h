@@ -47,6 +47,7 @@ private:
 	int sqWidth = 0;
 	int sqHeight = 0;
 	
+	bool disconnected = true;
 	bool running = false;
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;

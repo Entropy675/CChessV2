@@ -8,9 +8,14 @@ COMPILERFLAG = -Wl,-subsystem,windows -ISDL_include/
 LIB = -L. -lmingw32 -lSDL2main -lSDL2 -lws2_32 -luser32 -static-libstdc++ -static-libgcc 
 CC = g++
 
+ICON_WINRESOURCE = ../icon/icon.res
 
-$(TARGET): $(OBJS)
-	$(CC) $(COMPILERFLAG) $(INCLUDE) $(OBJS) $(LIB)  -o $(TARGET)
+
+$(TARGET): $(OBJS) $(ICON_WINRESOURCE)
+	$(CC) $(COMPILERFLAG) $(INCLUDE) $(OBJS) $(LIB) $(ICON_WINRESOURCE) -o $(TARGET)
+
+$(ICON_WINRESOURCE): ../icon/icon.rc
+	windres $< -O coff -o $@
 
 $(obj)GameClient.o: $(src)GameClient.cc $(src)GameClient.h $(src)defs.h
 	$(CC) $(COMPILERFLAG) $(INCLUDE) -c $(src)GameClient.cc -o $(obj)GameClient.o 

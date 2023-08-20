@@ -93,7 +93,6 @@ void WindowsSocket::receiveData(std::string& out, int cs)
 void WindowsSocket::receiveDataToQueue()
 {
 	std::string output = "";
-	std::queue<std::string> tempQueue;
 	
 	std::cout << "WindowsSocket::receiveDataToQueue(): Entering... \n";
 	
@@ -112,14 +111,18 @@ void WindowsSocket::receiveDataToQueue()
 				else
 				{
 					std::cout << "Recieved Data (" << socket << "): " << output << std::endl;
-					tempQueue.push(output); // does not store ref, copies
+					
+					std::lock_guard<std::mutex> lock(queueMutex);
+					std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if lock has a lock, gives me cmdQueue
+					std::cout << "Push " << output << std::endl;
+					cmdQueue.push(output);
 				}
 				
 				std::cout << "SOC " << socketint << std::endl;
 			}
 		}
 		
-
+		/*
 		if(!tempQueue.empty())
 		{
 			std::lock_guard<std::mutex> lock(queueMutex);
@@ -129,7 +132,7 @@ void WindowsSocket::receiveDataToQueue()
 			cmdQueue.push(tempQueue.front());
 			tempQueue.pop();
 		}
-		
+		*/
 		
 	}
 	

@@ -74,7 +74,7 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 
 int GameClient::startConnection()
 {
-	if(!static_cast<bool>(clientSocket))
+	if(!disconnected)
 	{
 		closesocket(clientSocket);
 		return 1;
@@ -93,13 +93,15 @@ int GameClient::startConnection()
     serverAddress.sin_addr.s_addr = inet_addr(connectIP.c_str());
 
     // Connect to server
-    if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) {
+    if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) 
+	{
         std::cout << "GameClient::startConnection(): Connection failed." << std::endl;
         closesocket(clientSocket);
         WSACleanup();
         return 1;
     }
 
+	disconnected = false;
     std::cout << "GameClient::startConnection(): Connected to the server." << std::endl;
 	return 0;
 }
@@ -236,8 +238,8 @@ bool GameClient::isRunning()
 
 void GameClient::sendData(const char* message)
 {
-	std::cout << "GameClient::sendData(): Sending: " << message << std::endl;
-    if (send(clientSocket, message, strlen(message), 0) == SOCKET_ERROR) 
+	std::cout << "GameClient::sendData(): Sending: " << (disconnected ? "" : message) << std::endl;
+    if (send(clientSocket, disconnected ? "" : message, disconnected ? 0 : strlen(message), 0) == SOCKET_ERROR) 
 	{
         std::cout << "GameClient::sendData(): Failed to send data. Error code: " << WSAGetLastError() << std::endl;
         // fail code goes here
