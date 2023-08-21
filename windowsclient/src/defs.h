@@ -9,8 +9,8 @@
 
 
 #define PORT 			50123
+#define CONNECT_IP		"127.0.0.1"
 
-#include <iomanip>
-#include <iostream>
+
 
 #endif

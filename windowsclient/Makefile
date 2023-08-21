@@ -5,7 +5,7 @@ OBJS = $(obj)GameClient.o $(obj)main.o
 
 TARGET = ../bin/Windows/CChess.exe
 COMPILERFLAG = -Wl,-subsystem,windows -ISDL_include/
-LIB = -L. -lmingw32 -lSDL2main -lSDL2 -lws2_32 -luser32 -static-libstdc++ -static-libgcc 
+LIB = -L. -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lws2_32 -luser32 -static-libstdc++ -static-libgcc 
 CC = g++
 
 ICON_WINRESOURCE = ../icon/icon.res

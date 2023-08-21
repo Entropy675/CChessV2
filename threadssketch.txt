@@ -2,30 +2,20 @@ startServer()
     acceptConnections() Thread:
         This thread is responsible for accepting incoming client connections.
         It adds the accepted client sockets to the clientSockets vector.
-        It runs independently and doesn't need to be blocked by the other threads.
+        It adds a thread that listens to that client to the recieveThreads vector.
+	
+	Each client socket will recieve updates about the game.
+	If the positions of player are available, anyone can send a player request and become a player (we keep pointers (sockets) to two players and let them send move requests).
+	Anyone can send messages in the general chat.
 
-    receiveDataToQueue() Thread:
-        This thread is responsible for receiving data from clients and enqueuing it in the command queue.
-        It loops through the clientSockets vector and receives data using the ReceiveData() function.
-        It enqueues the received data into the command queue after proper synchronization, focusing on minimal lockage of shared resources.
-        Like the AcceptConnections() thread, this thread can run independently and doesn't need to be blocked.
+    receiveDataToQueue(inputsocket) Threads:
+        These threads are responsible for receiving data from clients and enqueuing them in the command queue.
+        Listens to an assigned socket and enques the received data into the command queue after proper synchronization.
+        These threads run independently and don't need to be blocked.
 
-    Main Processing Thread:
-        The main loop of the server application.
-        It processes commands from the command queue, executing the requested actions.
-        If the queue is empty, it can wait or sleep until new commands are available.
-        This thread focuses on executing the commands and doesn't directly deal with the networking aspects, this is where the interaction with the board model occurs.
-
-Proposed new thread:
-Handling Unresponsive Clients
-Use a separate thread to manage unresponsive clients, preventing main thread blocking and enhancing server stability.
-
-    Queue and Hashmap: Utilize a queue for unresponsive clients and a hashmap to track missing data associated with client sockets.
-
-    Retransmission Strategy: Attempt to resend missing data at increasing intervals (powers of 2) to allow client recovery while preventing server overload.
-
-    Automatic Disconnection: After a set number of retransmission attempts (e.g., 20), disconnect unresponsive clients to manage resources.
-
-    Stability and Responsiveness: Dedicated thread maintains main thread performance by addressing unresponsive clients independently.
-
-By adopting this strategy, the application ensures responsive and stable client management while optimizing resource utilization.
+    Main thread:
+        We can now go into the main loop of the server application.
+        -> Processes commands from the command queue, executing the requested actions.
+        -> If queue is empty, it can wait or sleep until new commands are available.
+        This thread focuses on executing the commands and doesn't directly deal with the networking aspects, this is where the interaction with the Chess model occurs.
+	This thread will send responses back to the clients whos commands have been queued. 
