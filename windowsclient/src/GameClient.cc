@@ -3,8 +3,9 @@
 #include <cstdlib>
 
 GameClient::GameClient()
+	: connectIP(CONNECT_IP)
 {
-	
+	TTF_Init();
 }
 
 GameClient::~GameClient()
@@ -15,6 +16,7 @@ GameClient::~GameClient()
     // Cleanup Winsock
     WSACleanup();
 	
+    TTF_Quit();
 	// clean up SDL
 	clean();
 }
@@ -156,7 +158,9 @@ void GameClient::handleEvents()
 			{
 				if(startConnection())
 					SDL_Log("GameClient::handleEvents(): Could not connect to the socket server.");
-			}
+				else
+					SDL_Log("GameClient::handleEvents(): Connected.");
+			}	
 			else if(event.key.keysym.sym == SDLK_t)
 			{
 				SDL_Log("GameClient::handleEvents(): Attempting to send test packet.");
@@ -164,7 +168,11 @@ void GameClient::handleEvents()
 				sendData(testing.c_str());
 			}
 			break;
-			
+		
+		case SDL_TEXTINPUT:
+			inputText += event.text.text;
+			break; 
+		
 		default:	
 			break;
 	}
@@ -212,7 +220,8 @@ void GameClient::render()
 	}
 	
 	SDL_Rect rect;
-	
+
+
 	// OUTLINES
     // Set the draw color for the rectangle - Draw the screen outline
     // Create rectangles for chatbox
@@ -221,7 +230,32 @@ void GameClient::render()
     rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.29), getScreenY(0.98, false)};
     SDL_RenderFillRect(renderer, &rect);
 	
+	// Load a font (replace with the actual path to your font file)
+	
+	// Render the text to the screen
+	/*
+	textSurface = TTF_RenderText_Solid(font, inputText.c_str(), textColor);
+	rect = { 10, 10, 300, 300};
+	if (!textSurface) 
+	{
+		SDL_Log("Error creating text surface: %s %s", TTF_GetError(), inputText.c_str());
+		// Handle the error appropriately
+	}
+	textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
+	SDL_RenderCopy(renderer, textTexture, nullptr, &rect);
+	*/
+	
 	SDL_RenderPresent(renderer);
+}
+
+std::string& GameClient::getIP()
+{
+	return connectIP;
+}
+
+void GameClient::setIP(const char* inp)
+{
+	connectIP = inp; 
 }
 
 void GameClient::clean()

@@ -22,6 +22,9 @@ public:
 	void startGameLoop();
 	bool isRunning();
 	
+	std::string& getIP();
+	void setIP(const char*);
+	
 	void log(const char*);
 	
 private:
@@ -52,9 +55,16 @@ private:
 	SDL_Window* window = nullptr;
 	SDL_Renderer* renderer = nullptr;
 	
+	std::string inputText = "well this better be something for testing";
+	
     WSADATA wsaData;
     SOCKET clientSocket;
-	std::string connectIP = "127.0.0.1";
+	std::string connectIP;
+	
+	TTF_Font* font;
+	SDL_Color textColor;
+	SDL_Surface* textSurface;
+	SDL_Texture* textTexture;
 };
 
 

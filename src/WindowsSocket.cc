@@ -115,7 +115,7 @@ void WindowsSocket::receiveDataToQueue(int socketint)
 			
 			std::lock_guard<std::mutex> lock(queueMutex);
 			std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if i got a lock, gives me cmdQueue
-			std::cout << "WindowsSocket::receiveDataToQueue(): SOC " << socketint << ", cmdQueue.push(): " << output << std::endl;
+			std::cout << "WindowsSocket::receiveDataToQueue(): SOC " << socketint << ", cmdQueue.push() " << std::endl;
 			cmdQueue.push(output);
 		}
 	}
@@ -129,7 +129,7 @@ bool WindowsSocket::closeDisconnectedSockets(int soc)
 	int tm = ++timeoutMap[soc];
 	if(tm % 10 == 0)
 		std::cout << "WindowsSocket::closeDisconnectedSockets(): TIME OUT SOC (" << soc << "): " << tm << std::endl;
-	if(tm >= SOCKET_TIMEOUT)
+	if(tm >= 100)
 	{
 		timeoutMap.erase(soc);
 		SOCKET tSoc = static_cast<SOCKET>(soc);
@@ -140,6 +140,8 @@ bool WindowsSocket::closeDisconnectedSockets(int soc)
 		return true;
 	}
 	
+	
+	std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_TIMEOUT));
 	return false;
 }
 

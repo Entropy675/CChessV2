@@ -7,7 +7,7 @@
 #define PORT 			50123
 
 #define ENGINE_DELAY_MS	10
-#define SOCKET_TIMEOUT	1000
+#define SOCKET_TIMEOUT	10
 
 enum class ChessStatus 
 {
