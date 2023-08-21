@@ -30,7 +30,7 @@ class LinuxClient
 	void toggleSize(); // large/small
 	void userInput(std::string&);
 	void print(const std::string&);
-	void log(const std::string&);
+	void log(const char*);
 	
 	void printAt(int x, int y, const std::string& s) const;
 	
@@ -41,11 +41,9 @@ class LinuxClient
 	int startConnection();
     sockaddr_in serverAddress{};
     int clientSocket;
-	std::string connectIP = "127.0.0.1";
+	std::string connectIP;
 	
 	// NCURSES
-	void logStrP(std::string);
-	
 	void initNcurses();
 	void cleanupNcurses();
 	

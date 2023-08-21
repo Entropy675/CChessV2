@@ -1,6 +1,7 @@
 #include "LinuxClient.h"
 
-LinuxClient::LinuxClient() : baseWriteHead(19), writeHead(baseWriteHead), logfile("log.txt"), logstring("")
+LinuxClient::LinuxClient() 
+	: connectIP(CONNECT_IP), baseWriteHead(19), writeHead(baseWriteHead), logfile("log.txt"), logstring("")
 {
 	initNcurses();
 	setcchar(&li, L"─", A_NORMAL, 0, NULL);
@@ -45,26 +46,26 @@ int LinuxClient::startConnection()
 	
     if (clientSocket < 0) 
 	{
-        std::cerr << "Failed to create socket." << std::endl;
+        log("Failed to create socket.");
         return 1;
     }
 
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(PORT);
+    serverAddress.sin_port = htons(PORT); 
 	
     if (inet_pton(AF_INET, connectIP.c_str(), &(serverAddress.sin_addr)) <= 0) 
 	{
-        std::cerr << "Invalid address." << std::endl;
+        log("Invalid address.");
         return 1;
     }
 
     if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) < 0) 
 	{
-        std::cerr << "Connection failed." << std::endl;
+        log("Connection failed.");
         return 1;
     }
 	
-	std::cout << "Connected to the chess engine." << std::endl;
+	log("Connected to the chess engine.");
 
     return 0;
 }
@@ -139,6 +140,8 @@ void LinuxClient::startGameLoop()
 		
 		if(uinp == string("tg"))
 			toggleSize();
+		else if(uinp == string("connect"))
+			startConnection();
 		else if(uinp == string("exit"))
 			break;
 		
@@ -197,7 +200,7 @@ void LinuxClient::userInput(std::string& uinp)
 	uinp.erase(uinp.end()-1); // null terminates, removes \n from uinp
 }
 
-void LinuxClient::log(const std::string& sin)
+void LinuxClient::log(const char* sin)
 {
 	std::string s(sin);
 	std::size_t pos = 0;
@@ -289,12 +292,10 @@ void LinuxClient::drawPieces()
 			Pos p(y, x);
 			move(x*sqSize.getY() + offset.getY(), y*sqSize.getX() + offset.getX());
 			
-			if(!(game.getPiece(p) == '\0'))
-			{
-				cchar_t ctemp;
-				wideChessConversion(game.getPiece(p), ctemp);
-				add_wch(&ctemp);
-			}
+			cchar_t ctemp;
+			wideChessConversion(game.getPiece(p), ctemp);
+			add_wch(&ctemp);
+		
 		}
 		
 		int y1 = getcury(stdscr);
@@ -356,7 +357,7 @@ void LinuxClient::drawPieceBar()
 // this is where the convention lowercase = white is set
 void LinuxClient::wideChessConversion(char c, cchar_t& cch)
 {
-	wchar_t tmp;
+	wchar_t tmp = ' ';
 	if(c == 'r')
 		tmp = L'♜';
 	if(c == 'n')

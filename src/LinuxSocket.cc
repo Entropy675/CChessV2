@@ -34,7 +34,7 @@ void LinuxSocket::acceptConnections()
 	
 }
 
-void LinuxSocket::receiveDataToQueue()
+void LinuxSocket::receiveDataToQueue(int socket)
 {
 	
 }

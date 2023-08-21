@@ -11,10 +11,17 @@ LocalBoard::~LocalBoard()
 	
 }
 
+void LocalBoard::setStartingBoard(bool startingColor)
+{
+	whitePerspective = startingColor;
+}
+
 char& LocalBoard::getPiece(Pos p)
 {
 	return board[p.getX()][p.getY()];
 }
+
+
 const std::vector<char>& LocalBoard::getDeadWhitePieces() const
 {
 	return deadWhitePieces;
