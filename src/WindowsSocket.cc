@@ -13,14 +13,29 @@ WindowsSocket::WindowsSocket() : serverSocketEnabled(false)
 WindowsSocket::~WindowsSocket()
 {
 	serverSocketEnabled = false;
-	
-	if (acceptThread.joinable())
-		acceptThread.join();
+
+	try
+	{		
+		if (acceptThread.joinable())
+			acceptThread.join();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Accept thread could not be joined: " << e.what() << std::endl;
+	}
+
 	
 	for(std::thread& t : recieveThreads)
-	{		
-		if (t.joinable())
-			t.join();
+	{
+		try
+		{		
+			if (t.joinable())
+				t.join();
+		}
+		catch(const std::exception& e)
+		{
+			std::cerr << "Accept thread could not be joined: " << e.what() << std::endl;
+		}
 	}
 	
 	{
@@ -127,9 +142,9 @@ bool WindowsSocket::closeDisconnectedSockets(int soc)
 {
 	std::lock_guard<std::mutex> lock(timeoutMutex);
 	int tm = ++timeoutMap[soc];
-	if(tm % 10 == 0)
+	if(tm % (SOCKET_TIMEOUT_PING/10) == 0)
 		std::cout << "WindowsSocket::closeDisconnectedSockets(): TIME OUT SOC (" << soc << "): " << tm << std::endl;
-	if(tm >= 100)
+	if(tm >= SOCKET_TIMEOUT_PING)
 	{
 		timeoutMap.erase(soc);
 		SOCKET tSoc = static_cast<SOCKET>(soc);
@@ -141,7 +156,7 @@ bool WindowsSocket::closeDisconnectedSockets(int soc)
 	}
 	
 	
-	std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_TIMEOUT));
+	std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_TIMEOUT_MS));
 	return false;
 }
 
@@ -171,7 +186,8 @@ int WindowsSocket::startServer()
 {
 	// Create a socket
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (serverSocket == INVALID_SOCKET) {
+	if (serverSocket == INVALID_SOCKET) 
+	{
 		std::cout << "WindowsSocket::startServer(): Server socket creation failed\n";
 		return 1;
 	}
@@ -183,13 +199,15 @@ int WindowsSocket::startServer()
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
 
 	// Bind the socket
-	if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
+	if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) 
+	{
 		std::cout << "WindowsSocket::startServer(): Server bind failed\n";
 		closesocket(serverSocket);
 		return 1;
 	}
 	
-    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) {
+    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) 
+	{
         std::cout << "WindowsSocket::startServer(): Server socket listen failed" << std::endl;
         closesocket(serverSocket);
         return 1;
