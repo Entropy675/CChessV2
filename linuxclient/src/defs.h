@@ -8,5 +8,6 @@
 #define C_NOK			1
 
 #define PORT 			50123
+#define CONNECT_IP		"127.0.0.1"
 
 #endif
