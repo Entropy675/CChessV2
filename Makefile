@@ -58,6 +58,7 @@ $(PATH2OBJ)main.o: $(PATH2SRC)main.cc $(PATH2SRC)defs.h
 clean:
 		find . -type f -name '*.o' -delete
 		rm -f icon/icon.res
+		rm -f bin/Linux/log.txt
 		rm -f $(BINARY)
 		rm -f $(BINLOCATION)CChess$(ENDTAG)
 	
@@ -65,3 +66,4 @@ clean:
 cleanobjects:
 		find . -type f -name '*.o' -delete
 		rm -f icon/icon.res
+		rm -f bin/Linux/log.txt
