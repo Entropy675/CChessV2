@@ -1,7 +1,7 @@
 #include "WindowsSocket.h"
 #include <algorithm>
 
-WindowsSocket::WindowsSocket() : serverSocketEnabled(false)
+WindowsSocket::WindowsSocket()
 {
 	// Initialize Winsock
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -12,37 +12,12 @@ WindowsSocket::WindowsSocket() : serverSocketEnabled(false)
 
 WindowsSocket::~WindowsSocket()
 {
-	serverSocketEnabled = false;
-
-	try
-	{		
-		if (acceptThread.joinable())
-			acceptThread.join();
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "Accept thread could not be joined: " << e.what() << std::endl;
-	}
-
-	
-	for(std::thread& t : recieveThreads)
-	{
-		try
-		{		
-			if (t.joinable())
-				t.join();
-		}
-		catch(const std::exception& e)
-		{
-			std::cerr << "Accept thread could not be joined: " << e.what() << std::endl;
-		}
-	}
-	
 	{
 		std::lock_guard<std::mutex> lock(clientSocketsMutex);
 		for(auto& sockets : clientSockets)
 			closesocket(sockets);
 	}
+	
 	// Cleanup and close socket
 	closesocket(serverSocket);
 	WSACleanup();
@@ -73,9 +48,9 @@ int WindowsSocket::sendData(const std::string& data, int cs)
 	} 
 	
 	std::lock_guard<std::mutex> lock(clientSocketsMutex);
-	for (SOCKET& sock : clientSockets) 
+	for (int& sock : clientSockets) 
 	{
-		int bytesSent = send(sock, data.c_str(), data.size(), 0);
+		int bytesSent = send(static_cast<SOCKET>(sock), data.c_str(), data.size(), 0);
 		if (bytesSent == SOCKET_ERROR) 
 		{
 			std::cout << "WindowsSocket::SendData(): send failed" << std::endl;
@@ -94,7 +69,7 @@ void WindowsSocket::receiveData(std::string& out, int cs)
 {
 	SOCKET clientSocket = static_cast<SOCKET>(cs);
 
-    char buffer[1024]; // Adjust the buffer size as needed
+    char buffer[RECIEVED_DATA_BUFF]; // Adjust the buffer size as needed
     int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
 
     if (bytesReceived == SOCKET_ERROR) {
@@ -112,7 +87,10 @@ void WindowsSocket::receiveDataToQueue(int socketint)
 	std::string output = "";
 	std::cout << "WindowsSocket::receiveDataToQueue(): Entering... \n";
 	
-	while(serverSocketEnabled)
+	bool doNotJoin = true;
+	
+	
+	while(serverSocketEnabled && doNotJoin)
 	{
 		
 		receiveData(output, socketint);
@@ -121,12 +99,13 @@ void WindowsSocket::receiveDataToQueue(int socketint)
 		{
 			if(closeDisconnectedSockets(socketint))
 			{
-				return;
+				doNotJoin = false;
 			}
 		}
 		else
 		{
-			std::cout << "WindowsSocket::receiveDataToQueue(): Recieved Data (" << socket << "): " << output << std::endl;
+			std::cout << "WindowsSocket::receiveDataToQueue(): TEMP recieveThreads size: " << recieveThreads.size() << std::endl;
+			std::cout << "WindowsSocket::receiveDataToQueue(): Recieved Data (" << socketint << "): " << output << std::endl;
 			
 			std::lock_guard<std::mutex> lock(queueMutex);
 			std::queue<std::string>& cmdQueue = accessCommandQueue(lock); // if i got a lock, gives me cmdQueue
@@ -135,6 +114,8 @@ void WindowsSocket::receiveDataToQueue(int socketint)
 		}
 	}
 	
+	std::lock_guard<std::mutex> lock(recieveThreadsMutex);
+	//recieveThreads.erase(std::this_thread::get_id()); // removing thread from joinable thread set
 	std::cout << "WindowsSocket::receiveDataToQueue(): Exiting... \n";
 }
 	
@@ -147,16 +128,15 @@ bool WindowsSocket::closeDisconnectedSockets(int soc)
 	if(tm >= SOCKET_TIMEOUT_PING)
 	{
 		timeoutMap.erase(soc);
-		SOCKET tSoc = static_cast<SOCKET>(soc);
-		closesocket(tSoc);
-		std::vector<SOCKET>::iterator it = std::find(clientSockets.begin(), clientSockets.end(), tSoc);
+		closesocket(static_cast<SOCKET>(soc));
+		std::vector<int>::iterator it = std::find(clientSockets.begin(), clientSockets.end(), soc);
 		if (it != clientSockets.end())
 			clientSockets.erase(it);
 		return true;
 	}
 	
 	
-	std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_TIMEOUT_MS));
+	std::this_thread::sleep_for(std::chrono::milliseconds(SOCKET_TIMEOUT_PING/10));
 	return false;
 }
 
@@ -166,31 +146,61 @@ void WindowsSocket::acceptConnections()
 	
     while (serverSocketEnabled) 
 	{
-        SOCKET clientSocket = accept(serverSocket, NULL, NULL);
+        SOCKET clientSocket = accept(static_cast<SOCKET>(serverSocket), NULL, NULL);
         if (clientSocket == INVALID_SOCKET)
             continue;
 
         // Add the client socket to the vector
 		std::cout << "WindowsSocket::acceptConnections(): CLIENT CONNECTED: " <<  static_cast<int>(clientSocket) << std::endl;
         
-		std::lock_guard<std::mutex> lock(clientSocketsMutex);
-		clientSockets.push_back(clientSocket);
-		recieveThreads.push_back(std::thread(&WindowsSocket::receiveDataToQueue, this, static_cast<int>(clientSocket)));
+		{
+			std::lock_guard<std::mutex> lock(clientSocketsMutex);
+			clientSockets.push_back(static_cast<int>(clientSocket));
+		}
+		std::thread temp(&WindowsSocket::receiveDataToQueue, this, static_cast<int>(clientSocket));
+		{			
+			std::lock_guard<std::mutex> lock(recieveThreadsMutex);
+			recieveThreads[temp.get_id()] = std::move(temp);
+		}
     }
 	
 	std::cout << "WindowsSocket::acceptConnections(): Exiting... \n";
 }
 
+void WindowsSocket::resendOrder(int socket, std::string cmd)
+{
+	int resetCount = 1;
+	bool notSent = true;
+	
+	while (serverSocketEnabled && resetCount < RESEND_CMD_PING && notSent) 
+	{
+		resetCount++;
+		
+		notSent = sendData(cmd, socket);
+		
+		if(notSent)
+			std::this_thread::sleep_for(std::chrono::milliseconds(resetCount*RESEND_CMD_PING));
+	}
+}
+
+void WindowsSocket::startResendOfOrder(int socket, const std::string& cmd)
+{
+	std::thread temp(&WindowsSocket::resendOrder, this, socket, cmd);
+	temp.detach();
+	//resendThreads[temp.get_id()] = std::move(temp);
+}
 
 int WindowsSocket::startServer()
 {
 	// Create a socket
-	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (serverSocket == INVALID_SOCKET) 
+	SOCKET tmp = socket(AF_INET, SOCK_STREAM, 0);
+	if (tmp == INVALID_SOCKET) 
 	{
 		std::cout << "WindowsSocket::startServer(): Server socket creation failed\n";
 		return 1;
 	}
+	
+	serverSocket = static_cast<int>(tmp);
 
 	// Set up sockaddr_in structure	
 	struct sockaddr_in serverAddr;
@@ -199,17 +209,17 @@ int WindowsSocket::startServer()
 	serverAddr.sin_addr.s_addr = INADDR_ANY;
 
 	// Bind the socket
-	if (bind(serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) 
+	if (bind(tmp, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) 
 	{
 		std::cout << "WindowsSocket::startServer(): Server bind failed\n";
-		closesocket(serverSocket);
+		closesocket(tmp);
 		return 1;
 	}
 	
-    if (listen(serverSocket, SOMAXCONN) == SOCKET_ERROR) 
+    if (listen(tmp, SOMAXCONN) == SOCKET_ERROR) 
 	{
         std::cout << "WindowsSocket::startServer(): Server socket listen failed" << std::endl;
-        closesocket(serverSocket);
+        closesocket(tmp);
         return 1;
     }
 	
