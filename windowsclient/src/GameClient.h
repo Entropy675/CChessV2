@@ -33,6 +33,8 @@ private:
 	void render();
 	void clean();
 	
+	void get_text_and_rect(SDL_Renderer*, int, int, const char*, TTF_Font*, SDL_Texture**, SDL_Rect*);
+	
 	// return x & y values, takes fraction of screen. Accounts for different screen sizes with offset internally.
 	int getScreenX(float, bool = true); // like 0.5 would be the X value for the halfway of the screen, for 1600 screen it returns 800.
 	int getScreenY(float, bool = true);
@@ -41,6 +43,7 @@ private:
 	
 	int startConnection();
 	void sendData(const char*);
+	bool receiveData(std::string& out); // returns true if there is data to recieve.
 	
 	int windowOffsetX = 0;
 	int windowOffsetY = 0;
@@ -63,8 +66,10 @@ private:
 	
 	TTF_Font* font;
 	SDL_Color textColor;
-	SDL_Surface* textSurface;
 	SDL_Texture* textTexture;
+    SDL_Texture *texture1;
+	
+    SDL_Rect textRect;
 };
 
 

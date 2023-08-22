@@ -11,6 +11,6 @@
 #define PORT 			50123
 #define CONNECT_IP		"127.0.0.1"
 
-
+#define RECIEVED_DATA_BUFF	1024
 
 #endif

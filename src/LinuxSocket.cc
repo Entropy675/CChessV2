@@ -44,3 +44,13 @@ void LinuxSocket::receiveData(std::string& out, int cs)
 	
 }
 
+void LinuxSocket::startResendOfOrder(int socket, const std::string& cmd)
+{
+	
+}
+
+
+void LinuxSocket::resendOrder(int socket, std::string cmd)
+{
+
+}

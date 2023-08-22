@@ -1,18 +1,13 @@
 #ifndef WINDOWSSOCKET_H
 #define WINDOWSSOCKET_H
 
-#include "SocketHandler.h"	
-#include "defs.h"
 
 // Windows
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <windows.h>
 
-#include <chrono>
-#include <thread>
-#include <vector>
-
+#include "SocketHandler.h"	
 
 class WindowsSocket : public SocketHandler
 {
@@ -26,19 +21,14 @@ class WindowsSocket : public SocketHandler
 
 	private:
 	virtual void acceptConnections() override; // should be put on a diff thread
-	virtual void receiveDataToQueue(int socket) override;
+	virtual void receiveDataToQueue(int socket) override; // thread
 	virtual void receiveData(std::string& out, int cs) override;
+	virtual void resendOrder(int socket, std::string cmd) override; // thread, detached
+	virtual void startResendOfOrder(int socket, const std::string& cmd) override;
 
 	bool closeDisconnectedSockets(int soc);
 
-    std::thread acceptThread;
-	
 	WSADATA wsaData;
-	std::vector<std::thread> recieveThreads;
-	std::vector<SOCKET> clientSockets;
-	std::mutex clientSocketsMutex; // use std::lock_guard<std::mutex> lock(clientSocketsMutex); object to simplify lock/unlocking (its RAII)
-	SOCKET serverSocket;
-	bool serverSocketEnabled;
 };
 
 

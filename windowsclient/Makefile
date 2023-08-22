@@ -12,16 +12,16 @@ ICON_WINRESOURCE = ../icon/icon.res
 
 
 $(TARGET): $(OBJS) $(ICON_WINRESOURCE)
-	$(CC) $(COMPILERFLAG) $(INCLUDE) $(OBJS) $(LIB) $(ICON_WINRESOURCE) -o $(TARGET)
+	$(CC) $(COMPILERFLAG) $(OBJS) $(LIB) $(ICON_WINRESOURCE) -o $(TARGET)
 
 $(ICON_WINRESOURCE): ../icon/icon.rc
 	windres $< -O coff -o $@
 
 $(obj)GameClient.o: $(src)GameClient.cc $(src)GameClient.h $(src)defs.h
-	$(CC) $(COMPILERFLAG) $(INCLUDE) -c $(src)GameClient.cc -o $(obj)GameClient.o 
+	$(CC) $(COMPILERFLAG) -c $(src)GameClient.cc -o $(obj)GameClient.o 
 	
 $(obj)main.o: $(src)main.cc $(src)defs.h
-	$(CC) $(COMPILERFLAG) $(INCLUDE) -c $(src)main.cc -o $(obj)main.o
+	$(CC) $(COMPILERFLAG) -c $(src)main.cc -o $(obj)main.o
 
 	
 clean:

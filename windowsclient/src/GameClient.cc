@@ -5,7 +5,6 @@
 GameClient::GameClient()
 	: connectIP(CONNECT_IP)
 {
-	TTF_Init();
 }
 
 GameClient::~GameClient()
@@ -63,6 +62,16 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
         std::cout << "GameClient::init(): Failed to initialize Winsock." << std::endl;
         return 1;
     }
+	
+	TTF_Init();
+    font = TTF_OpenFont("FreeSans.ttf", 14);
+	    if (font == NULL) {
+        SDL_Log("GameClient::init(): font not found\n");
+        exit(EXIT_FAILURE);
+    }
+	
+	
+	get_text_and_rect(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
 	
 	// chessboard tile size
 	sqWidth = (int)(SCREEN_WIDTH*0.7)/MAX_ROW_COL - 1;
@@ -180,6 +189,11 @@ void GameClient::handleEvents()
 
 void GameClient::update()
 {
+	if(receiveData(inputText))
+	{
+		get_text_and_rect(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+	}
+	
 	return;
 }
 
@@ -244,7 +258,10 @@ void GameClient::render()
 	textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
 	SDL_RenderCopy(renderer, textTexture, nullptr, &rect);
 	*/
-	
+		/* Use TTF textures. */
+		
+
+	SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
 	SDL_RenderPresent(renderer);
 }
 
@@ -279,6 +296,42 @@ void GameClient::sendData(const char* message)
         std::cout << "GameClient::sendData(): Failed to send data. Error code: " << WSAGetLastError() << std::endl;
         // fail code goes here
     }
+}
+
+bool GameClient::receiveData(std::string& out)
+{
+
+    char buffer[RECIEVED_DATA_BUFF]; // Adjust the buffer size as needed
+    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+
+    if (bytesReceived == SOCKET_ERROR) {
+        return false; // Return early because there is no message
+    }
+
+    // Null-terminate the received data
+    buffer[bytesReceived] = '\0';
+
+    out = std::string(buffer);
+	return true;
+}
+
+
+void GameClient::get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect) 
+{
+	int text_width;
+	int text_height;
+	SDL_Surface *surface;
+	SDL_Color textColor = {0, 0, 0, 0};
+
+	surface = TTF_RenderText_Blended(font, text, textColor);
+	*texture = SDL_CreateTextureFromSurface(renderer, surface);
+	text_width = surface->w;
+	text_height = surface->h;
+	SDL_FreeSurface(surface);
+	rect->x = x;
+	rect->y = y;
+	rect->w = text_width;
+	rect->h = text_height;
 }
 
 void GameClient::toggleFullscreen()

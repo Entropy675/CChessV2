@@ -1,9 +1,6 @@
 #ifndef LINUXSOCKET_H
 #define LINUXSOCKET_H
 
-#include <thread>
-#include <iostream>
-
 // LINUX
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -25,14 +22,10 @@ class LinuxSocket : public SocketHandler
 	virtual void acceptConnections() override; 
 	virtual void receiveDataToQueue(int socket) override;
 	virtual void receiveData(std::string& out, int cs) override;
-    std::thread acceptThread;
-    std::thread recieveThread;
+	virtual void resendOrder(int socket, std::string cmd) override;
+	virtual void startResendOfOrder(int socket, const std::string& cmd) override;
 	
-    int serverSocket;
     sockaddr_in serverAddress{};
-	std::vector<int> clientSockets;
-	std::mutex clientSocketsMutex;
-	
 };
 
 #endif

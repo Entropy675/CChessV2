@@ -34,6 +34,8 @@ int ChessEngine::startServer()
     int status = SocketCtrl->startServer();
 	std::cout << "ChessEngine::startServer(): Going into response queue... MS:" << ENGINE_DELAY_MS << std::endl;
 	int pingCounter = 0;
+	std::string data;
+	
 	while(true)
 	{
 		{
@@ -51,6 +53,9 @@ int ChessEngine::startServer()
 				std::cout << "Ping... " << std::endl;
 			}
 		}
+		data = "ping... " + std::to_string(pingCounter);
+		SocketCtrl->sendData(data);
+		
 		std::this_thread::sleep_for(std::chrono::milliseconds(ENGINE_DELAY_MS));
 	}
 }
