@@ -28,7 +28,6 @@ class WindowsSocket : public SocketHandler
 
 	bool closeDisconnectedSockets(int soc);
 
-	
 	WSADATA wsaData;
 };
 
