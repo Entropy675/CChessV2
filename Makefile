@@ -67,3 +67,8 @@ cleanobjects:
 		find . -type f -name '*.o' -delete
 		rm -f icon/icon.res
 		rm -f bin/Linux/log.txt
+		
+.PHONY: cleanbin
+cleanbin:
+		rm -f $(BINARY)
+		rm -f $(BINLOCATION)CChess$(ENDTAG)
