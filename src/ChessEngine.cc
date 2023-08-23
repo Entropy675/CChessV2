@@ -28,17 +28,26 @@ ChessEngine::~ChessEngine()
 		delete SocketCtrl;
 }
 
-
 int ChessEngine::startServer()
 {
     int status = SocketCtrl->startServer();
 	std::cout << "ChessEngine::startServer(): Going into response queue... MS:" << ENGINE_DELAY_MS << std::endl;
+	std::cout << "ChessEngine::startServer(): Socket Start Server STATUS: " << status << std::endl;
+	
+	if(!status)
+		responseLoop();
+	
+	return status;
+}
+
+void ChessEngine::responseLoop()
+{
 	int pingCounter = 0;
 	std::string data;
 	
 	while(true)
 	{
-		{
+		{	
 			std::lock_guard<std::mutex> lock(SocketCtrl->queueMutex);
 			std::queue<std::string>& cmdQueue = SocketCtrl->accessCommandQueue(lock);
 			// CORE LOOP
@@ -47,13 +56,18 @@ int ChessEngine::startServer()
 				std::cout << cmdQueue.front() << std::endl;
 				cmdQueue.pop();
 			}
-			else if(pingCounter++ > 20)
+			else if(pingCounter++ > 200)
 			{
 				pingCounter = 0;
 				std::cout << "Ping... " << std::endl;
 			}
 		}
-		data = "ping... " + std::to_string(pingCounter);
+		data = "ping... " + std::to_string(pingCounter) + " -> ";
+		
+		for(int i = 0; i < pingCounter; i++)
+			if(i % 4 == 0)
+				data += std::to_string(i);
+		
 		SocketCtrl->sendData(data);
 		
 		std::this_thread::sleep_for(std::chrono::milliseconds(ENGINE_DELAY_MS));

@@ -32,6 +32,8 @@ class ChessEngine
 	int startServer();
 	
 	private:
+	void responseLoop();
+	
 	SocketHandler* SocketCtrl = nullptr;
 	
 	Board game;

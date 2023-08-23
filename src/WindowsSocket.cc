@@ -37,10 +37,7 @@ int WindowsSocket::sendData(const std::string& data, int cs)
 		int bytesSent = send(clientSocket, data.c_str(), data.size(), 0);
 		if (bytesSent == SOCKET_ERROR) 
 		{
-			std::cout << "WindowsSocket::SendData(): send failed" << std::endl;
-			// This is something to be discussed. See threadssketch.txt.
-			// Handle error if needed, or you can loop forever until it succeeds I guess?
-			// if it goes on for too long = they dropped connection and you close their socket
+			// requires more work
 			return 1; // Return an error code
 		}
 		
@@ -53,10 +50,7 @@ int WindowsSocket::sendData(const std::string& data, int cs)
 		int bytesSent = send(static_cast<SOCKET>(sock), data.c_str(), data.size(), 0);
 		if (bytesSent == SOCKET_ERROR) 
 		{
-			std::cout << "WindowsSocket::SendData(): send failed" << std::endl;
-			// This is something to be discussed. See threadssketch.txt.
-			// make a list of people that didn't get the message, and keep trying to send it.
-			// if it fails too many times = dropped connection
+			// requires more work
 			return 1; // Return an error code
 		}
 	}
