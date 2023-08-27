@@ -3,21 +3,13 @@
 #include <cstdlib>
 
 GameClient::GameClient()
-	: connectIP(CONNECT_IP)
-{
-}
+	: soc(CONNECT_IP) {}
 
 GameClient::~GameClient()
 {
-	
-    closesocket(clientSocket);
-
-    // Cleanup Winsock
-    WSACleanup();
-	
     TTF_Quit();
-	// clean up SDL
-	clean();
+    // clean up SDL
+    clean();
 }
 
 int GameClient::init(const char* title, int xpos, int ypos, int width, int height, bool fs)
@@ -56,12 +48,7 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
         SDL_Log("GameClient::init(): Renderer could not be created! SDL_Error: %s", SDL_GetError());
 		return 1;
 	}	
-	
-	// initialize winsock
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cout << "GameClient::init(): Failed to initialize Winsock." << std::endl;
-        return 1;
-    }
+
 	
 	TTF_Init();
     font = TTF_OpenFont("FreeSans.ttf", 14);
@@ -71,7 +58,7 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
     }
 	
 	
-	get_text_and_rect(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+	getTextureAndRectLine(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
 	
 	// chessboard tile size
 	sqWidth = (int)(SCREEN_WIDTH*0.7)/MAX_ROW_COL - 1;
@@ -80,41 +67,6 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	std::cout << "GameClient::init(): Chessboard Tile - Width: " << sqWidth << "Height: " << sqHeight << std::endl;
 	
 	running = true;
-	return 0;
-}
-
-int GameClient::startConnection()
-{
-	if(!disconnected)
-	{
-		closesocket(clientSocket);
-		disconnected = true;
-		return 1;
-	}
-    // Create socket
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket == INVALID_SOCKET) {
-        std::cout << "GameClient::startConnection(): Failed to create socket." << std::endl;
-        WSACleanup();
-        return 1;
-    }
-
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(PORT);
-    serverAddress.sin_addr.s_addr = inet_addr(connectIP.c_str());
-
-    // Connect to server
-    if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) 
-	{
-        std::cout << "GameClient::startConnection(): Connection failed." << std::endl;
-        closesocket(clientSocket);
-        WSACleanup();
-        return 1;
-    }
-
-	disconnected = false;
-    std::cout << "GameClient::startConnection(): Connected to the server." << std::endl;
 	return 0;
 }
 
@@ -165,7 +117,7 @@ void GameClient::handleEvents()
 			}
 			else if(event.key.keysym.sym == SDLK_c)
 			{
-				if(startConnection())
+				if(soc.startConnection())
 					SDL_Log("GameClient::handleEvents(): Could not connect to the socket server.");
 				else
 					SDL_Log("GameClient::handleEvents(): Connected.");
@@ -174,7 +126,7 @@ void GameClient::handleEvents()
 			{
 				SDL_Log("GameClient::handleEvents(): Attempting to send test packet.");
 				std::string testing = "TEST PACKET " + std::to_string(tempCounter++);
-				sendData(testing.c_str());
+				soc.sendData(testing.c_str());
 			}
 			break;
 		
@@ -189,9 +141,9 @@ void GameClient::handleEvents()
 
 void GameClient::update()
 {
-	if(receiveData(inputText))
+	if(soc.receiveData(inputText))
 	{
-		get_text_and_rect(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+		getTextureAndRectLine(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
 	}
 	
 	return;
@@ -265,15 +217,6 @@ void GameClient::render()
 	SDL_RenderPresent(renderer);
 }
 
-std::string& GameClient::getIP()
-{
-	return connectIP;
-}
-
-void GameClient::setIP(const char* inp)
-{
-	connectIP = inp; 
-}
 
 void GameClient::clean()
 {
@@ -288,35 +231,85 @@ bool GameClient::isRunning()
 	return running;
 }
 
+int GameClient::startConnection()
+{
+	return soc.startConnection();
+}
+
+std::string& GameClient::getIP()
+{
+	return soc.getIP();
+}
+
+void GameClient::setIP(const char* c)
+{
+	soc.setIP(c);
+}
+	
 void GameClient::sendData(const char* message)
 {
-	std::cout << "GameClient::sendData(): Sending: " << (disconnected ? "" : message) << std::endl;
-    if (send(clientSocket, disconnected ? "" : message, disconnected ? 0 : strlen(message), 0) == SOCKET_ERROR) 
-	{
-        std::cout << "GameClient::sendData(): Failed to send data. Error code: " << WSAGetLastError() << std::endl;
-        // fail code goes here
-    }
+	std::cout << "GameClient::sendData(): Sending: " << (soc.isConnected() ? message : "") << std::endl;
+    soc.sendData(message);
 }
 
 bool GameClient::receiveData(std::string& out)
 {
-
-    char buffer[RECIEVED_DATA_BUFF]; // Adjust the buffer size as needed
-    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
-
-    if (bytesReceived == SOCKET_ERROR) {
-        return false; // Return early because there is no message
-    }
-
-    // Null-terminate the received data
-    buffer[bytesReceived] = '\0';
-
-    out = std::string(buffer);
-	return true;
+	return soc.receiveData(out);
 }
 
 
-void GameClient::get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect) 
+void GameClient::getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect)
+{
+	SDL_Surface *surface;
+	SDL_Color textColor = {0, 0, 0, 0};
+
+	// Split the text into lines based on newline characters
+	std::vector<std::string> lines;
+	std::istringstream textStream(text);
+	std::string line;
+	while (std::getline(textStream, line))
+	{
+		lines.push_back(line);
+	}
+
+	// Calculate the total height and maximum width of the multiline text
+	int totalHeight = 0;
+	int maxWidth = 0;
+	
+	surface = TTF_RenderText_Blended(font, lines[0].c_str(), textColor);
+	
+	totalHeight = surface->h * lines.size();
+	maxWidth = 200;
+
+	SDL_FreeSurface(surface);
+
+	// Create a texture that fits the multiline text
+	surface = SDL_CreateRGBSurface(0, maxWidth, totalHeight, 32, 0, 0, 0, 0);
+	SDL_Rect destinationRect = {0, 0, 0, 0};
+
+	for (const auto &line : lines)
+	{
+		surface = TTF_RenderText_Blended(font, line.c_str(), textColor);
+		*texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+		destinationRect.w = surface->w;
+		destinationRect.h = surface->h;
+
+		SDL_RenderCopy(renderer, *texture, NULL, &destinationRect);
+
+		destinationRect.y += surface->h;
+		
+		SDL_FreeSurface(surface);
+	}
+
+	rect->x = x;
+	rect->y = y;
+	rect->w = maxWidth;
+	rect->h = totalHeight;
+}
+
+/*
+void GameClient::getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect) 
 {
 	int text_width;
 	int text_height;
@@ -333,6 +326,7 @@ void GameClient::get_text_and_rect(SDL_Renderer *renderer, int x, int y, const c
 	rect->w = text_width;
 	rect->h = text_height;
 }
+*/
 
 void GameClient::toggleFullscreen()
 {
