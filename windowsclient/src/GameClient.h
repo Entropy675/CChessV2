@@ -9,6 +9,8 @@
 #include "defs.h"
 #include "Socket.h"
 #include "Text.h"
+#include "Window.h"
+
 
 #include <vector>
 #include <iostream>
@@ -39,23 +41,9 @@ private:
 	void render();
 	void clean();
 	
-	//void getTextureAndRectMultiline(SDL_Renderer*, int, int, const char*, TTF_Font*, SDL_Texture**, SDL_Rect*);
-	void getTextureAndRectLine(SDL_Renderer*, int, int, const char*, TTF_Font*, SDL_Texture**, SDL_Rect*);
-	
+	void drawBoard();
+
 	Socket soc;
-	int startConnection();
-
-	void sendData(const char* message);
-	bool receiveData(std::string& out); // returns true if there is data to recieve.
-	
-	// return x & y values, takes fraction of screen. Accounts for different screen sizes with offset internally.
-	int getScreenX(float, bool = true); // like 0.5 would be the X value for the halfway of the screen, for 1600 screen it returns 800.
-	int getScreenY(float, bool = true);
-
-	void toggleFullscreen();
-	
-	int windowOffsetX = 0;
-	int windowOffsetY = 0;
 	
 	int tempCounter = 0;
 	
@@ -63,17 +51,9 @@ private:
 	int sqHeight = 0;
 	
 	bool running = false;
-	SDL_Window* window = nullptr;
-	SDL_Renderer* renderer = nullptr;
+	Window* win = nullptr;
 	
 	std::string inputText = "well this better be something for testing";
-	
-	TTF_Font* font;
-	SDL_Color textColor;
-	SDL_Texture* textTexture;
-    SDL_Texture *texture1;
-	
-    SDL_Rect textRect;
 };
 
 

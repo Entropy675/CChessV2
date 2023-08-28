@@ -1,7 +1,7 @@
 obj = obj/
 src = src/
 
-OBJS = $(obj)GameClient.o $(obj)main.o $(obj)Socket.o $(obj)Text.o
+OBJS = $(obj)GameClient.o $(obj)main.o $(obj)Socket.o $(obj)Text.o $(obj)Window.o
 
 TARGET = ../bin/Windows/CChess.exe
 COMPILERFLAG = -Wl,-subsystem,windows -ISDL_include/
@@ -17,7 +17,7 @@ $(TARGET): $(OBJS) $(ICON_WINRESOURCE)
 $(ICON_WINRESOURCE): ../icon/icon.rc
 	windres $< -O coff -o $@
 
-$(obj)GameClient.o: $(src)GameClient.cc $(src)GameClient.h $(src)Socket.h $(src)Text.h $(src)defs.h
+$(obj)GameClient.o: $(src)GameClient.cc $(src)GameClient.h $(src)Socket.h $(src)Text.h $(src)defs.h $(src)Window.h
 	$(CC) $(COMPILERFLAG) -c $(src)GameClient.cc -o $(obj)GameClient.o 
 	
 $(obj)main.o: $(src)main.cc $(src)defs.h
@@ -26,8 +26,11 @@ $(obj)main.o: $(src)main.cc $(src)defs.h
 $(obj)Socket.o: $(src)Socket.cc $(src)Socket.h $(src)defs.h
 	$(CC) $(COMPILERFLAG) -c $(src)Socket.cc -o $(obj)Socket.o
 	
-$(obj)Text.o: $(src)Text.cc $(src)Text.h $(src)defs.h
+$(obj)Text.o: $(src)Text.cc $(src)Text.h $(src)defs.h $(src)Window.h
 	$(CC) $(COMPILERFLAG) -c $(src)Text.cc -o $(obj)Text.o
+
+$(obj)Window.o: $(src)Window.cc $(src)Window.h $(src)defs.h
+	$(CC) $(COMPILERFLAG) -c $(src)Window.cc -o $(obj)Window.o
 	
 clean:
 	find . -type f -name '*.o' -delete
