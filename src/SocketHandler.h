@@ -31,17 +31,11 @@ protected:
 	virtual void startResendOfOrder(int socket, const std::string& cmd) = 0;
 	virtual void resendOrder(int socket, std::string cmd) = 0; // thread, detached
 	
-	
     std::thread acceptThread;
-	
-	// Problem and idea, we need to remove threads from this container from inside the threads.
-	// std::this_thread::get_id() gives the id of a thread from inside of one.
-	// we can store threads as an unordered map between thread ids and thread objects? Then they can remove their own entires.
-	// probably gonna need a queue that handles joining these threads by id or something
+
 	std::unordered_map<std::thread::id, std::thread> recieveThreads;
 	std::mutex recieveThreadsMutex; // std::lock_guard<std::mutex> lock(recieveThreadsMutex);
 	//std::vector<std::thread> resendThreads; (these are detached now)
-	//std::vector<std::thread> recieveThreads;
 	
 	std::mutex timeoutMutex; // Use std::lock_guard<std::mutex> lock(timeoutMutex); 
 	std::unordered_map<int, int> timeoutMap;

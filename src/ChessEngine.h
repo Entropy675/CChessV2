@@ -15,6 +15,7 @@
 #include <thread>
 #include <chrono>
 #include <mutex>
+#include <queue>
 #include <vector>
 
 #include "SocketHandler.h"

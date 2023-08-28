@@ -8,7 +8,6 @@
     #error "ChessEngine.cc: Unsupported platform - compilation stopped."
 #endif
 
-#include <queue>
 
 ChessEngine::ChessEngine()
 {
@@ -82,10 +81,13 @@ void ChessEngine::responseLoop()
 
 		data = "ping... " + std::to_string(pingCounter) + " -> ";
 		
-		for(int i = 0; i < pingCounter; i++)
+		for(int i = 0; i < 100; i++)
+		{
 			if(i % 4 == 0)
 				data += std::to_string(i);
-		
+			if(i % 25 == 0)
+				data += "\n";
+		}
 		// ping on the clients that are connected
 		SocketCtrl->sendData(data); // respond all clients connected
 		// can also do SocketCtrl->sendData(data, socket); for specific comms.

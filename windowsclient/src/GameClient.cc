@@ -3,21 +3,17 @@
 #include <cstdlib>
 
 GameClient::GameClient()
-	: connectIP(CONNECT_IP)
-{
-}
+	: soc(CONNECT_IP) {}
 
 GameClient::~GameClient()
 {
-	
-    closesocket(clientSocket);
-
-    // Cleanup Winsock
-    WSACleanup();
-	
     TTF_Quit();
+    
+	if(win)
+		delete win;
+	
 	// clean up SDL
-	clean();
+    clean();
 }
 
 int GameClient::init(const char* title, int xpos, int ypos, int width, int height, bool fs)
@@ -29,49 +25,12 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
         return 1;
     }
 	
-	int flags = SDL_WINDOW_SHOWN;
-	
-	if(fs)
-		flags = SDL_WINDOW_FULLSCREEN_DESKTOP;
-	
-    window = SDL_CreateWindow(
-        title,
-        xpos,
-        ypos,
-        width,
-        height,
-        flags
-    );
-
-    if (window == nullptr) 
-	{
-        SDL_Log("GameClient::init(): Window could not be created! SDL_Error: %s", SDL_GetError());
-        return 1;
-    }
-	
-	// windows created
-	renderer = SDL_CreateRenderer(window, -1, 0);
-	if(!renderer)
-	{
-        SDL_Log("GameClient::init(): Renderer could not be created! SDL_Error: %s", SDL_GetError());
-		return 1;
-	}	
-	
-	// initialize winsock
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
-        std::cout << "GameClient::init(): Failed to initialize Winsock." << std::endl;
-        return 1;
-    }
-	
 	TTF_Init();
-    font = TTF_OpenFont("FreeSans.ttf", 14);
-	    if (font == NULL) {
-        SDL_Log("GameClient::init(): font not found\n");
-        exit(EXIT_FAILURE);
-    }
 	
+	win = new Window(title, xpos, ypos, width, height, fs);
 	
-	get_text_and_rect(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+	//getTextureAndRectLine(win->getRendererSDL(), win->getScreenX(0.705), win->getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+	// text.update();
 	
 	// chessboard tile size
 	sqWidth = (int)(SCREEN_WIDTH*0.7)/MAX_ROW_COL - 1;
@@ -80,41 +39,6 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	std::cout << "GameClient::init(): Chessboard Tile - Width: " << sqWidth << "Height: " << sqHeight << std::endl;
 	
 	running = true;
-	return 0;
-}
-
-int GameClient::startConnection()
-{
-	if(!disconnected)
-	{
-		closesocket(clientSocket);
-		disconnected = true;
-		return 1;
-	}
-    // Create socket
-    clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (clientSocket == INVALID_SOCKET) {
-        std::cout << "GameClient::startConnection(): Failed to create socket." << std::endl;
-        WSACleanup();
-        return 1;
-    }
-
-    sockaddr_in serverAddress;
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_port = htons(PORT);
-    serverAddress.sin_addr.s_addr = inet_addr(connectIP.c_str());
-
-    // Connect to server
-    if (connect(clientSocket, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress)) == SOCKET_ERROR) 
-	{
-        std::cout << "GameClient::startConnection(): Connection failed." << std::endl;
-        closesocket(clientSocket);
-        WSACleanup();
-        return 1;
-    }
-
-	disconnected = false;
-    std::cout << "GameClient::startConnection(): Connected to the server." << std::endl;
 	return 0;
 }
 
@@ -161,11 +85,12 @@ void GameClient::handleEvents()
 			else if(event.key.keysym.sym == SDLK_BACKQUOTE)
 			{
 				SDL_Log("GameClient::handleEvents(): Tilde ~ button pressed.");
-				toggleFullscreen();
+				win->toggleFullscreen();
+				render();
 			}
 			else if(event.key.keysym.sym == SDLK_c)
 			{
-				if(startConnection())
+				if(soc.startConnection())
 					SDL_Log("GameClient::handleEvents(): Could not connect to the socket server.");
 				else
 					SDL_Log("GameClient::handleEvents(): Connected.");
@@ -174,7 +99,7 @@ void GameClient::handleEvents()
 			{
 				SDL_Log("GameClient::handleEvents(): Attempting to send test packet.");
 				std::string testing = "TEST PACKET " + std::to_string(tempCounter++);
-				sendData(testing.c_str());
+				soc.sendData(testing.c_str());
 			}
 			break;
 		
@@ -189,97 +114,74 @@ void GameClient::handleEvents()
 
 void GameClient::update()
 {
-	if(receiveData(inputText))
+	if(soc.receiveData(inputText))
 	{
-		get_text_and_rect(renderer, getScreenX(0.705), getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+		//getTextureAndRectLine(win->getRendererSDL(), win->getScreenX(0.705), win->getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
+		// make a new text
 	}
 	
 	return;
 }
 
-int GameClient::getScreenX(float percent, bool topLeft)
-{
-	if(topLeft)
-		return (int)(SCREEN_WIDTH*percent) + windowOffsetX;
-	return (int)(SCREEN_WIDTH*percent) - windowOffsetX;
-}
-int GameClient::getScreenY(float percent, bool topLeft)
-{
-	if(topLeft)
-		return (int)(SCREEN_HEIGHT*percent) + windowOffsetY;
-	return (int)(SCREEN_HEIGHT*percent) - windowOffsetY;
-}
 
 void GameClient::render()
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
+    SDL_SetRenderDrawColor(win->getRendererSDL(), 0, 0, 0, 255);
+	SDL_RenderClear(win->getRendererSDL());
 	
 	// add stuff to render
+		// Chessboard draw
+	for(int x = 0; x < MAX_ROW_COL; ++x)
+	{
+		for(int y = 0; y < MAX_ROW_COL; ++y)
+		{
+			// RAINBOW!!
+			// SDL_SetRenderDrawColor(win->getRendererSDL(), x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
+			if((y+x) % 2 == 0)
+				SDL_SetRenderDrawColor(win->getRendererSDL(), 118, 150, 86, 255);
+			else
+				SDL_SetRenderDrawColor(win->getRendererSDL(), 238, 238, 210, 255);
+			SDL_Rect tile = {(int)(x*sqWidth + win->getScreenX(0.005) + 0.005), (int)(y*sqHeight + win->getScreenY(0.005) + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
+			SDL_RenderFillRect(win->getRendererSDL(), &tile);    // Draw the tiles
+		}
+	}
+
+    // Create rectangles for chatbox (might wanna turn this into some kind of object that handles this, with two stacks for top and bottom to allow scroll)
+	SDL_Rect rect;
+    SDL_SetRenderDrawColor(win->getRendererSDL(), 200, 200, 200, 255);
+    rect = {win->getScreenX(0.705), win->getScreenY(0.01), win->getScreenX(0.29), win->getScreenY(0.98, false)};
+    SDL_RenderFillRect(win->getRendererSDL(), &rect);
+
+	//SDL_RenderCopy(win->getRendererSDL(), textTexture, NULL, &textRect);
+	// text.draw();
 	
+	SDL_RenderPresent(win->getRendererSDL());
+}
+
+void GameClient::drawBoard()
+{
 	// Chessboard draw
 	for(int x = 0; x < MAX_ROW_COL; ++x)
 	{
 		for(int y = 0; y < MAX_ROW_COL; ++y)
 		{
 			// RAINBOW!!
-			// SDL_SetRenderDrawColor(renderer, x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
+			// SDL_SetRenderDrawColor(win->getRendererSDL(), x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
 			if((y+x) % 2 == 0)
-				SDL_SetRenderDrawColor(renderer, 118, 150, 86, 255);
+				SDL_SetRenderDrawColor(win->getRendererSDL(), 118, 150, 86, 255);
 			else
-				SDL_SetRenderDrawColor(renderer, 238, 238, 210, 255);
-			SDL_Rect tile = {(int)(x*sqWidth + getScreenX(0.005) + 0.005), (int)(y*sqHeight + getScreenY(0.005) + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
-			SDL_RenderFillRect(renderer, &tile);    // Draw the tiles
+				SDL_SetRenderDrawColor(win->getRendererSDL(), 238, 238, 210, 255);
+			SDL_Rect tile = {(int)(x*sqWidth + win->getScreenX(0.005) + 0.005), (int)(y*sqHeight + win->getScreenY(0.005) + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
+			SDL_RenderFillRect(win->getRendererSDL(), &tile);    // Draw the tiles
 		}
 	}
 	
-	SDL_Rect rect;
-
-
-	// OUTLINES
-    // Set the draw color for the rectangle - Draw the screen outline
-    // Create rectangles for chatbox
-	// (x, y, width, height)
-    SDL_SetRenderDrawColor(renderer, 200, 200, 200, 255);
-    rect = {getScreenX(0.705), getScreenY(0.01), getScreenX(0.29), getScreenY(0.98, false)};
-    SDL_RenderFillRect(renderer, &rect);
-	
-	// Load a font (replace with the actual path to your font file)
-	
-	// Render the text to the screen
-	/*
-	textSurface = TTF_RenderText_Solid(font, inputText.c_str(), textColor);
-	rect = { 10, 10, 300, 300};
-	if (!textSurface) 
-	{
-		SDL_Log("Error creating text surface: %s %s", TTF_GetError(), inputText.c_str());
-		// Handle the error appropriately
-	}
-	textTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-	SDL_RenderCopy(renderer, textTexture, nullptr, &rect);
-	*/
-		/* Use TTF textures. */
-		
-
-	SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
-	SDL_RenderPresent(renderer);
 }
 
-std::string& GameClient::getIP()
-{
-	return connectIP;
-}
-
-void GameClient::setIP(const char* inp)
-{
-	connectIP = inp; 
-}
 
 void GameClient::clean()
 {
 	SDL_Log("GameClient::clean(): Cleaning...");
-	SDL_DestroyWindow(window);
-	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
 }
 
@@ -288,80 +190,13 @@ bool GameClient::isRunning()
 	return running;
 }
 
-void GameClient::sendData(const char* message)
+std::string& GameClient::getIP()
 {
-	std::cout << "GameClient::sendData(): Sending: " << (disconnected ? "" : message) << std::endl;
-    if (send(clientSocket, disconnected ? "" : message, disconnected ? 0 : strlen(message), 0) == SOCKET_ERROR) 
-	{
-        std::cout << "GameClient::sendData(): Failed to send data. Error code: " << WSAGetLastError() << std::endl;
-        // fail code goes here
-    }
+	return soc.getIP();
 }
 
-bool GameClient::receiveData(std::string& out)
+void GameClient::setIP(const char* c)
 {
-
-    char buffer[RECIEVED_DATA_BUFF]; // Adjust the buffer size as needed
-    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
-
-    if (bytesReceived == SOCKET_ERROR) {
-        return false; // Return early because there is no message
-    }
-
-    // Null-terminate the received data
-    buffer[bytesReceived] = '\0';
-
-    out = std::string(buffer);
-	return true;
+	soc.setIP(c);
 }
 
-
-void GameClient::get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect) 
-{
-	int text_width;
-	int text_height;
-	SDL_Surface *surface;
-	SDL_Color textColor = {0, 0, 0, 0};
-
-	surface = TTF_RenderText_Blended(font, text, textColor);
-	*texture = SDL_CreateTextureFromSurface(renderer, surface);
-	text_width = surface->w;
-	text_height = surface->h;
-	SDL_FreeSurface(surface);
-	rect->x = x;
-	rect->y = y;
-	rect->w = text_width;
-	rect->h = text_height;
-}
-
-void GameClient::toggleFullscreen()
-{
-	Uint32 flags = SDL_GetWindowFlags(window);
-	int screenWidth, screenHeight;
-	
-    if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) 
-	{
-		SDL_SetWindowFullscreen(window, 0);
-		render();		// render changes to display
-		windowOffsetX = 0;
-		windowOffsetY = 0;
-		
-        SDL_Log("GameClient::toggleFullscreen(): Window is now in windowed mode.");
-    } 
-	else 
-	{
-		// Calculate scaling factors based on screen and image dimensions
-		// theoretically you can scale each pixel to the right position with the following code
-		SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-		render();		// render changes to display
-		SDL_GetWindowSize(window, &screenWidth, &screenHeight);
-		windowOffsetX = (int)(std::abs(screenWidth - SCREEN_WIDTH)*0.35);
-		windowOffsetY = (int)(std::abs(screenHeight - SCREEN_HEIGHT)*0.35);
-
-        SDL_Log("GameClient::toggleFullscreen(): Window is now in fullscreen mode.");
-    }
-	
-	SDL_GetWindowSize(window, &screenWidth, &screenHeight);
-	std::string s = "GameClient::toggleFullscreen(): Screen Dimensions - X: " + std::to_string(screenWidth) + " Y: " + std::to_string(screenHeight);
-	SDL_Log(s.c_str());
-}
