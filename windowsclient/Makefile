@@ -1,7 +1,7 @@
 obj = obj/
 src = src/
 
-OBJS = $(obj)GameClient.o $(obj)main.o $(obj)Socket.o $(obj)Text.o $(obj)Window.o
+OBJS = $(obj)GameClient.o $(obj)main.o $(obj)Socket.o $(obj)Text.o $(obj)Window.o $(obj)ChatBox.o
 
 TARGET = ../bin/Windows/CChess.exe
 COMPILERFLAG = -Wl,-subsystem,windows -ISDL_include/
@@ -32,6 +32,9 @@ $(obj)Text.o: $(src)Text.cc $(src)Text.h $(src)defs.h $(src)Window.h
 $(obj)Window.o: $(src)Window.cc $(src)Window.h $(src)defs.h
 	$(CC) $(COMPILERFLAG) -c $(src)Window.cc -o $(obj)Window.o
 	
+$(obj)ChatBox.o: $(src)ChatBox.cc $(src)ChatBox.h $(src)Window.h $(src)Text.h $(src)defs.h
+	$(CC) $(COMPILERFLAG) -c $(src)ChatBox.cc -o $(obj)ChatBox.o
+
 clean:
 	find . -type f -name '*.o' -delete
 	rm $(TARGET)
