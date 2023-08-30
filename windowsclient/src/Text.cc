@@ -1,8 +1,8 @@
 #include "Text.h"
 
 
-Text::Text(SDL_Renderer* ren, Window* w)
-	: renderer(ren), win(w)
+Text::Text(SDL_Renderer* ren, Window* w, float x, float y)
+	: renderer(ren), win(w), screenX(x), screenY(y)
 {
 	font = TTF_OpenFont("FreeSans.ttf", 14);
 	if (font == NULL) 
@@ -10,16 +10,27 @@ Text::Text(SDL_Renderer* ren, Window* w)
 		SDL_Log("GameClient::init(): font not found\n");
 		exit(EXIT_FAILURE);
 	}
+	
 }
 
 Text::~Text()
 {
-	
+	if (font)
+    {
+        TTF_CloseFont(font);
+        font = nullptr;
+    }
+
+    if (textTexture)
+    {
+        SDL_DestroyTexture(textTexture);
+        textTexture = nullptr;
+    }
 }
 
 void Text::update()
 {
-	getTextureAndRectLine(renderer, win->getScreenX(0.705), win->getScreenY(0.01), localText.c_str(), font, &textTexture, &textRect);
+	getTextureAndRectLine(renderer, win->getScreenX(screenX), win->getScreenY(screenY), localText.c_str(), font, &textTexture, &textRect);
 }
 
 void Text::draw()
@@ -75,4 +86,20 @@ void Text::getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const cha
 	rect->y = y;
 	rect->w = maxWidth;
 	rect->h = totalHeight;
+}
+
+void Text::setScreenX(float x)
+{
+	screenX = x;
+}
+
+void Text::setScreenY(float y)
+{
+	screenY = y;
+}
+
+void Text::setScreenPos(float x, float y)
+{
+	screenX = x;
+	screenY = y;
 }
