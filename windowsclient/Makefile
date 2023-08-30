@@ -1,7 +1,7 @@
 obj = obj/
 src = src/
 
-OBJS = $(obj)GameClient.o $(obj)main.o $(obj)Socket.o $(obj)Text.o $(obj)Window.o $(obj)ChatBox.o
+OBJS = $(obj)GameClient.o $(obj)main.o $(obj)Socket.o $(obj)Text.o $(obj)Window.o
 
 TARGET = ../bin/Windows/CChess.exe
 COMPILERFLAG = -Wl,-subsystem,windows -ISDL_include/
@@ -9,6 +9,7 @@ LIB = -L. -lmingw32 -lSDL2main -lSDL2 -lSDL2_ttf -lws2_32 -luser32 -static-libst
 CC = g++
 
 ICON_WINRESOURCE = ../icon/icon.res
+
 
 $(TARGET): $(OBJS) $(ICON_WINRESOURCE)
 	$(CC) $(COMPILERFLAG) $(OBJS) $(LIB) $(ICON_WINRESOURCE) -o $(TARGET)
@@ -30,9 +31,6 @@ $(obj)Text.o: $(src)Text.cc $(src)Text.h $(src)defs.h $(src)Window.h
 
 $(obj)Window.o: $(src)Window.cc $(src)Window.h $(src)defs.h
 	$(CC) $(COMPILERFLAG) -c $(src)Window.cc -o $(obj)Window.o
-	
-$(obj)ChatBox.o: $(src)ChatBox.cc $(src)ChatBox.h $(src)Window.h $(src)Text.h $(src)defs.h
-	$(CC) $(COMPILERFLAG) -c $(src)ChatBox.cc -o $(obj)ChatBox.o
 	
 clean:
 	find . -type f -name '*.o' -delete
