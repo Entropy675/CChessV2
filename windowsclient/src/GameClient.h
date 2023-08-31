@@ -49,11 +49,14 @@ private:
 	
 	int sqWidth = 0;
 	int sqHeight = 0;
+	float tileGapWidth = 0.100;
+	float boardX = 0.005;
+	float boardY = 0.005;
 	
 	bool running = false;
 	Window* win = nullptr;
 	
-	std::string inputText = "well this better be something for testing";
+	std::string inputText = "\"nothing\"";
 };
 
 

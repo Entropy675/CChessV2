@@ -130,21 +130,8 @@ void GameClient::render()
 	SDL_RenderClear(win->getRendererSDL());
 	
 	// add stuff to render
-		// Chessboard draw
-	for(int x = 0; x < MAX_ROW_COL; ++x)
-	{
-		for(int y = 0; y < MAX_ROW_COL; ++y)
-		{
-			// RAINBOW!!
-			// SDL_SetRenderDrawColor(win->getRendererSDL(), x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
-			if((y+x) % 2 == 0)
-				SDL_SetRenderDrawColor(win->getRendererSDL(), 118, 150, 86, 255);
-			else
-				SDL_SetRenderDrawColor(win->getRendererSDL(), 238, 238, 210, 255);
-			SDL_Rect tile = {(int)(x*sqWidth + win->getScreenX(0.005) + 0.005), (int)(y*sqHeight + win->getScreenY(0.005) + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
-			SDL_RenderFillRect(win->getRendererSDL(), &tile);    // Draw the tiles
-		}
-	}
+	// Chessboard draw
+	drawBoard();
 
     // Create rectangles for chatbox (might wanna turn this into some kind of object that handles this, with two stacks for top and bottom to allow scroll)
 	SDL_Rect rect;
@@ -167,11 +154,12 @@ void GameClient::drawBoard()
 		{
 			// RAINBOW!!
 			// SDL_SetRenderDrawColor(win->getRendererSDL(), x*(255/MAX_ROW_COL), y*(255/MAX_ROW_COL), 255 - x*(255/MAX_ROW_COL/2) - y*(255/MAX_ROW_COL/2), 255);
-			if((y+x) % 2 == 0)
-				SDL_SetRenderDrawColor(win->getRendererSDL(), 118, 150, 86, 255);
+			if((y + x) % 2 == 0)
+				SDL_SetRenderDrawColor(win->getRendererSDL(), 150, 77, 34, 255);
 			else
-				SDL_SetRenderDrawColor(win->getRendererSDL(), 238, 238, 210, 255);
-			SDL_Rect tile = {(int)(x*sqWidth + win->getScreenX(0.005) + 0.005), (int)(y*sqHeight + win->getScreenY(0.005) + 0.005), (int)(sqWidth - 0.005), (int)(sqHeight - 0.005)};
+				SDL_SetRenderDrawColor(win->getRendererSDL(), 238, 220, 151, 255);
+			
+			SDL_Rect tile = {(int)(x*sqWidth + win->getScreenX(boardX) + tileGapWidth), (int)(y*sqHeight + win->getScreenY(boardY) + tileGapWidth), (int)(sqWidth - tileGapWidth), (int)(sqHeight - tileGapWidth)};
 			SDL_RenderFillRect(win->getRendererSDL(), &tile);    // Draw the tiles
 		}
 	}

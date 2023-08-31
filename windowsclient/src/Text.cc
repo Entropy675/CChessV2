@@ -1,8 +1,8 @@
 #include "Text.h"
 
 
-Text::Text(SDL_Renderer* ren, Window* w, float x, float y)
-	: renderer(ren), win(w), screenX(x), screenY(y)
+Text::Text(SDL_Renderer* ren, Window* w)
+	: renderer(ren), win(w)
 {
 	font = TTF_OpenFont("FreeSans.ttf", 14);
 	if (font == NULL) 
@@ -28,7 +28,8 @@ Text::~Text()
     }
 }
 
-void Text::update()
+// takes in % of the screen to be placed at, uses windows get screen functions to get the pix value for that
+void Text::updateTo(float screenX, float screenY)
 {
 	getTextureAndRectLine(renderer, win->getScreenX(screenX), win->getScreenY(screenY), localText.c_str(), font, &textTexture, &textRect);
 }
@@ -86,20 +87,4 @@ void Text::getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const cha
 	rect->y = y;
 	rect->w = maxWidth;
 	rect->h = totalHeight;
-}
-
-void Text::setScreenX(float x)
-{
-	screenX = x;
-}
-
-void Text::setScreenY(float y)
-{
-	screenY = y;
-}
-
-void Text::setScreenPos(float x, float y)
-{
-	screenX = x;
-	screenY = y;
 }
