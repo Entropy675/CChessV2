@@ -16,26 +16,26 @@
 class Text
 {
 	public:
-	Text(SDL_Renderer* = nullptr, Window* = nullptr);
+	Text(Window* = nullptr, const std::string& text = "");
 	~Text();
 	
-	void updateTo(float screenX, float screenY);
+	void updateTo(int screenX, int screenY);
 	void draw();
 	
 	private:
-	void getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect);
+	void getTextureAndRectLine(SDL_Renderer* ren, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect);
 
 	std::string localText;
 	
 	Window* win;
-	SDL_Renderer* renderer;
 	
 	TTF_Font* font;
-	SDL_Color textColor;
+	SDL_Color textColor = {0, 0, 0, 0};
 	SDL_Texture* textTexture;
-    SDL_Texture *texture1;
 	
     SDL_Rect textRect;
+	int maxWidth = 200;
+	SDL_Surface* surface;
 };
 
 

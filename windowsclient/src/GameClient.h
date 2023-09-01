@@ -10,6 +10,7 @@
 #include "Socket.h"
 #include "Text.h"
 #include "Window.h"
+#include "ChatBox.h"
 
 
 #include <vector>
@@ -56,6 +57,7 @@ private:
 	bool running = false;
 	Window* win = nullptr;
 	
+	ChatBox* chat = nullptr;
 	std::string inputText = "\"nothing\"";
 };
 

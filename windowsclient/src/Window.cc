@@ -36,7 +36,7 @@ Window::Window(const char* title, int xpos, int ypos, int width, int height, boo
 
 Window::~Window()
 {
-	std::cerr << "Window::~Window(): Cleaning...";
+	std::cerr << "Window::~Window(): Cleaning..." << std::endl;
 	SDL_DestroyWindow(window);
 	SDL_DestroyRenderer(renderer);
 }

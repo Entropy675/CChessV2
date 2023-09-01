@@ -1,8 +1,8 @@
 #include "Text.h"
 
 
-Text::Text(SDL_Renderer* ren, Window* w)
-	: renderer(ren), win(w)
+Text::Text(Window* w, const std::string& t)
+	: localText(t), win(w)
 {
 	font = TTF_OpenFont("FreeSans.ttf", 14);
 	if (font == NULL) 
@@ -10,7 +10,7 @@ Text::Text(SDL_Renderer* ren, Window* w)
 		SDL_Log("GameClient::init(): font not found\n");
 		exit(EXIT_FAILURE);
 	}
-	
+	textTexture = SDL_CreateTextureFromSurface(win->getRendererSDL(), surface);
 }
 
 Text::~Text()
@@ -26,24 +26,22 @@ Text::~Text()
         SDL_DestroyTexture(textTexture);
         textTexture = nullptr;
     }
+	
 }
 
 // takes in % of the screen to be placed at, uses windows get screen functions to get the pix value for that
-void Text::updateTo(float screenX, float screenY)
+void Text::updateTo(int screenX, int screenY)
 {
-	getTextureAndRectLine(renderer, win->getScreenX(screenX), win->getScreenY(screenY), localText.c_str(), font, &textTexture, &textRect);
+	getTextureAndRectLine(win->getRendererSDL(), screenX, screenY, localText.c_str(), font, &textTexture, &textRect);
 }
 
 void Text::draw()
 {
-	SDL_RenderCopy(renderer, textTexture, NULL, &textRect);
+	SDL_RenderCopy(win->getRendererSDL(), textTexture, NULL, &textRect);
 }
 
 void Text::getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const char *text, TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect)
 {
-	SDL_Surface *surface;
-	SDL_Color textColor = {0, 0, 0, 0};
-
 	// Split the text into lines based on newline characters
 	std::vector<std::string> lines;
 	std::istringstream textStream(text);
@@ -55,33 +53,42 @@ void Text::getTextureAndRectLine(SDL_Renderer *renderer, int x, int y, const cha
 
 	// Calculate the total height and maximum width of the multiline text
 	int totalHeight = 0;
-	int maxWidth = 0;
+	
+	if(surface)
+	{
+		SDL_FreeSurface(surface);
+		surface = nullptr;
+	}
 	
 	surface = TTF_RenderText_Blended(font, lines[0].c_str(), textColor);
-	
 	totalHeight = surface->h * lines.size();
-	maxWidth = 200;
-
 	SDL_FreeSurface(surface);
 
 	// Create a texture that fits the multiline text
-	surface = SDL_CreateRGBSurface(0, maxWidth, totalHeight, 32, 0, 0, 0, 0);
-	SDL_Rect destinationRect = {0, 0, 0, 0};
-
+	SDL_Surface* surfacemain = SDL_CreateRGBSurface(0, maxWidth, totalHeight, 32, 0, 0, 0, 0);
+	SDL_Rect destinationRect  = {0, 0, 0, 0};
+	
 	for (const auto &line : lines)
 	{
 		surface = TTF_RenderText_Blended(font, line.c_str(), textColor);
-		*texture = SDL_CreateTextureFromSurface(renderer, surface);
+		
 
 		destinationRect.w = surface->w;
 		destinationRect.h = surface->h;
 
-		SDL_RenderCopy(renderer, *texture, NULL, &destinationRect);
+		SDL_BlitSurface(surface, NULL, surfacemain, &destinationRect);
 
 		destinationRect.y += surface->h;
 		
 		SDL_FreeSurface(surface);
 	}
+	
+	if (textTexture)
+    {
+        SDL_DestroyTexture(textTexture);
+        textTexture = nullptr;
+    }
+	textTexture = SDL_CreateTextureFromSurface(renderer, surfacemain);
 
 	rect->x = x;
 	rect->y = y;

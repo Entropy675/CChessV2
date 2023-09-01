@@ -17,7 +17,7 @@ $(TARGET): $(OBJS) $(ICON_WINRESOURCE)
 $(ICON_WINRESOURCE): ../icon/icon.rc
 	windres $< -O coff -o $@
 
-$(obj)GameClient.o: $(src)GameClient.cc $(src)GameClient.h $(src)Socket.h $(src)Text.h $(src)defs.h $(src)Window.h
+$(obj)GameClient.o: $(src)GameClient.cc $(src)GameClient.h $(src)Socket.h $(src)Text.h $(src)Window.h $(src)ChatBox.h $(src)defs.h
 	$(CC) $(COMPILERFLAG) -c $(src)GameClient.cc -o $(obj)GameClient.o 
 	
 $(obj)main.o: $(src)main.cc $(src)defs.h

@@ -16,10 +16,10 @@
 class ChatBox
 {
 	public:
-	ChatBox(SDL_Renderer* = nullptr, Window* = nullptr, int numtext = 10, int gap = 30, int x = 0, int y = 0);
+	ChatBox(Window* = nullptr, int x = 0, int y = 0, int numtext = 10, int gap = 30);
 	~ChatBox();
 	
-	void addText(const char*);
+	void addText(const std::string&);
 	void moveUp();
 	void moveDown();
 	
@@ -32,7 +32,6 @@ class ChatBox
 	
 	private:	
 	Window* win;
-	SDL_Renderer* renderer;
 	
 	int x, y;
 	
@@ -45,10 +44,10 @@ class ChatBox
 	// draw() draws all the texts. Update() updates them to their appropriate positions.
 	std::stack<Text*> top;
 	std::deque<Text*> buff; // displayed to screen
-	std::stack<Text*> bot; 
+	std::deque<Text*> bot; // new things added to the end of this, if buff < numTextDisplayable then immediatly take the first value here and put to end of buff
 	
-	int numTextDisplayable;
-	int gapBetweenText;
+	int numTextDisplayable = 10;
+	int gapBetweenText = 30;
 };
 
 

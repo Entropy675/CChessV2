@@ -7,11 +7,19 @@ GameClient::GameClient()
 
 GameClient::~GameClient()
 {
+	std::cout << "GameClient::~GameClient(): Entering GameClient dtor..." << std::endl;
+	
     TTF_Quit();
-    
+	
+	if(chat)
+		delete chat;
+	else
+		std::cout << "GameClient::~GameClient(): No chat pointer..." << std::endl;
+	
 	if(win)
 		delete win;
-	
+	else
+		std::cout << "GameClient::~GameClient(): No window pointer..." << std::endl;
 	// clean up SDL
     clean();
 }
@@ -37,6 +45,11 @@ int GameClient::init(const char* title, int xpos, int ypos, int width, int heigh
 	sqHeight = (int)(SCREEN_HEIGHT)/MAX_ROW_COL - 1; 
 	
 	std::cout << "GameClient::init(): Chessboard Tile - Width: " << sqWidth << "Height: " << sqHeight << std::endl;
+	
+	chat = new ChatBox(win, 300, 300);
+	chat->addText(std::string("Testing #1 some random text"));
+	chat->addText(std::string("Testing #2 and again, and again"));
+	chat->addText(std::string("Testing #3 And finally lmao"));
 	
 	running = true;
 	return 0;
@@ -118,6 +131,8 @@ void GameClient::update()
 	{
 		//getTextureAndRectLine(win->getRendererSDL(), win->getScreenX(0.705), win->getScreenY(0.01), inputText.c_str(), font, &textTexture, &textRect);
 		// make a new text
+		chat->addText(inputText);
+		chat->update();
 	}
 	
 	return;
@@ -141,6 +156,10 @@ void GameClient::render()
 
 	//SDL_RenderCopy(win->getRendererSDL(), textTexture, NULL, &textRect);
 	// text.draw();
+	if(running)
+	{
+		chat->draw();
+	}
 	
 	SDL_RenderPresent(win->getRendererSDL());
 }
